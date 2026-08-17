@@ -283,9 +283,14 @@
   }
 
   function mostrarVozTab() {
+    mostrarBodyTab("voz");
+  }
+
+  function mostrarBodyTab(prov) {
     const tabs = $("jarvis-config-tabs");
-    if (tabs) tabs.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.prov === "voz"));
-    penyCfgBodies();
+    if (tabs) tabs.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.prov === prov));
+    const bodies = $("jarvis-config-bodies");
+    if (bodies) bodies.querySelectorAll(".jarvis-config-body").forEach(b => b.classList.toggle("active", b.dataset.prov === prov));
   }
 
   function guardarVoz() {
@@ -307,9 +312,7 @@
   }
 
   function jarvisShowOfflineTab() {
-    const tabs = $("jarvis-config-tabs");
-    if (tabs) tabs.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.prov === "offline"));
-    penyCfgBodies();
+    mostrarBodyTab("offline");
   }
 
   function guardarOffline() {
