@@ -7,8 +7,6 @@
 (function () {
   const THREE = window.THREE || {};
 
-
-(function () {
   const COUNT = 7000;
   const RADIUS = 2.0;
 
