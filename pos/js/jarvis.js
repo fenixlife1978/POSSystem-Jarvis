@@ -453,7 +453,17 @@
     (J.index && J.index.files || []).forEach(f => {
       files++; funcs += (f.functions || []).length; wins += (f.windows || []).length;
     });
-    return `Descubiertos ${files} archivos, ${funcs} funciones y ${wins} ventanas.`;
+    const db = getDBOrNull();
+    const nUsers = db && db.usuarios ? db.usuarios.length : 0;
+    const users = db && db.usuarios && db.usuarios.length
+      ? db.usuarios.map(u => u.usuario || u.nombre).slice(0, 10).join(", ")
+      : "ninguno";
+    const nCli = db && db.clientes ? db.clientes.length : 0;
+    const clientes = db && db.clientes && db.clientes.length
+      ? db.clientes.slice(0, 8).map(c => c.nombre).join(", ")
+      : "ninguno";
+    return `${nUsers} usuario(s) (${users}) y ${nCli} cliente(s) (${clientes}). ` +
+      `Pipeline: ${files} archivos, ${funcs} funciones y ${wins} ventanas exploradas.`;
   }
 
   function construirResumen() {
