@@ -17,7 +17,7 @@
   border-radius: 50%;
   pointer-events: auto;
   overflow: hidden;
-  background: transparent;
+  background: radial-gradient(circle at 35% 30%, #7fb0ff, #2a6ce0 45%, #0a3a8c 70%, #051c44);
   box-shadow: 0 0 26px rgba(40,130,255,.55);
 }
 #jarvis-orb:hover { transform: scale(1.08); }
