@@ -256,8 +256,54 @@
         <div class="jarvis-action-row">
           <button class="mod-btn" onclick="JarvisAPI.guardarOffline()">💾 Guardar modo local</button>
         </div>
+</div>
+      </div>`;
+    // Pestaña de Voz (ElevenLabs)
+    const vs = $("jarvis-config-tabs");
+    const vc = $("jarvis-config-bodies");
+    if (!vs || !vc) return;
+    const el = (J.cfg && J.cfg.elevenlabs) || {};
+    vs.innerHTML += `<div class="tab" data-prov="voz" onclick="JarvisAPI.mostrarVozTab()">🗣 Voz (ElevenLabs)</div>`;
+    vc.innerHTML += `<div class="jarvis-config-body" data-prov="voz">
+      <div class="jarvis-provider-card">
+        <div class="jarvis-provider-head"><b>🗣 Voz JARVIS (ElevenLabs)</b> <span class="jarvis-stat">${el.apiKey && el.voiceId ? "✓ configurado" : "sin configurar — voz nativa"}</span></div>
+        <div class="jarvis-stat" style="margin:4px 0">Pega tu API Key de ElevenLabs y el Voice ID de la voz clonada estilo JARVIS (busca "Jarvis" en la Voice Library). Se guarda localmente en esta PC.</div>
+        <label>ElevenLabs API Key</label>
+        <input type="password" class="input-medium" id="jarvis-el-key" value="${el.apiKey || ""}" autocomplete="off">
+        <label>Voice ID (20 caracteres)</label>
+        <input class="input-medium" id="jarvis-el-voice" value="${el.voiceId || ""}" placeholder="z9fP4kn41A23m92L...">
+        <label>Modelo de voz (opcional)</label>
+        <input class="input-medium" id="jarvis-el-model" value="${el.modelId || "eleven_multilingual_v2"}">
+        <div class="jarvis-action-row">
+          <button class="mod-btn" onclick="JarvisAPI.guardarVoz()">💾 Guardar voz</button>
+          <button class="mod-btn" onclick="JarvisAPI.probarVoz()">🔊 Probar voz</button>
+        </div>
       </div>
     </div>`;
+  }
+
+  function mostrarVozTab() {
+    const tabs = $("jarvis-config-tabs");
+    if (tabs) tabs.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.prov === "voz"));
+    penyCfgBodies();
+  }
+
+  function guardarVoz() {
+    if (!J.cfg) J.cfg = { proveedores: [], activo: "openrouter", voz: true, nombre: "Jarvis" };
+    J.cfg.elevenlabs = {
+      apiKey: ($("jarvis-el-key") && $("jarvis-el-key").value.trim()) || "",
+      voiceId: ($("jarvis-el-voice") && $("jarvis-el-voice").value.trim()) || "",
+      modelId: ($("jarvis-el-model") && $("jarvis-el-model").value.trim()) || "eleven_multilingual_v2"
+    };
+    saveCfg();
+    addMsg(J.cfg.elevenlabs.apiKey && J.cfg.elevenlabs.voiceId
+      ? "Voz JARVIS guardada. Hablaré con la voz clonada de ElevenLabs."
+      : "Voz nativa activada (sin ElevenLabs).", "sys");
+  }
+
+  async function probarVoz() {
+    await hablar("Hola, soy Jarvis. Configuración de voz correcta.");
+    addMsg("🔊 Reproduciendo prueba de voz...", "sys");
   }
 
   function jarvisShowOfflineTab() {
@@ -628,6 +674,80 @@
   async function ejecutarAccion(intent) {
     const t = (intent || "").toLowerCase();
     const rol = (typeof rolActual === "function") ? rolActual() : "Consulta";
+    const db = getDBOrNull();
+
+    // ---- CONSULTA DE PRECIO Y STOCK de un producto ----
+    // "¿cuánto cuesta el Aceite Sintético 20W50 y cuántas unidades quedan?"
+    const mPrecio = t.match(/(?:cuánto cuesta|precio de|precio del|a como|cuántas unidades quedan|stock de|existencias de)\s+(.+)/);
+    if (mPrecio) {
+      const q = mPrecio[1].replace(/\b(por favor|dime|me puedes decir|puedes decirme)\b/g, "").trim();
+      const prods = (db && db.productos || []).filter(p => {
+        const nom = (p.descripcion || "") + " " + (p.codigo || "");
+        return nom.toLowerCase().includes(q);
+      });
+      if (prods.length) {
+        const p = prods[0];
+        return {
+          text: `${p.descripcion} — Precio: Bs. ${fmtM(p.precio)} | Stock disponible: ${fmtM(p.existencia)} unidades.`,
+          bento: {
+            tipo: "modal", title: "Producto consultado",
+            campos: [
+              { label: "Código", valor: p.codigo },
+              { label: "Descripción", valor: p.descripcion },
+              { label: "Precio", valor: fmtM(p.precio) + " Bs." },
+              { label: "Stock", valor: fmtM(p.existencia) + " unidades" },
+              { label: "Mínimo", valor: fmtM(p.minimo) }
+            ]
+          }
+        };
+      }
+      return "No encontré el producto \"" + q + "\". ¿Quieres que te muestre los productos disponibles?";
+    }
+
+    // ---- VENTAS DEL DÍA por método de pago ----
+    // "¿cuánto se ha facturado hoy y en qué métodos de pago?"
+    if (/(cuánto se ha facturado|cuánto llevamos facturado|ventas del día|cuánto se vendió hoy|cuánto vendimos hoy|cuántas facturas).*(hoy|turno|día)/.test(t)) {
+      const hoyD = (typeof hoy === "function") ? hoy() : "";
+      const ventas = (db && db.ventas || []).filter(v => v.fecha === hoyD);
+      const total = ventas.reduce((s, v) => s + num0(v.total), 0);
+      const metodos = {};
+      ventas.forEach(v => (v.pagos || []).forEach(p => {
+        const m = p.metodo || "Otro";
+        metodos[m] = (metodos[m] || 0) + num0(p.monto);
+      }));
+      const detalle = Object.entries(metodos).map(([m, s]) => "- " + m + ": " + fmtM(s) + " Bs.").join("\n");
+      return {
+        text: `Se han facturado ${ventas.length} tickets por ${fmtM(total)} Bs. hoy.\nMétodos de pago:\n` + (detalle || "- Sin pagos registrados."),
+        bento: { tipo: "bars", title: "Ventas por método de pago", datos: Object.entries(metodos).map(([m, s]) => [m, s]) }
+      };
+    }
+
+    // ---- DEUDA DE UN CLIENTE específico (con último abono) ----
+    // "muéstrame la deuda actual del cliente Distribuidora del Norte"
+    const mDeuda = t.match(/(?:deuda|adeuda|debe|cuánto debe)\s+(?:de|el cliente|la|el)?\s*([a-z0-9 áéíóúñü]+)/);
+    if (/(deuda|adeuda|debe)/.test(t) && mDeuda && !/(cuentas por cobrar|todos los clientes)/.test(t)) {
+      const q = mDeuda[1].replace(/\b(actual|actualmente|mostrar|muestra)\b/g, "").trim();
+      const cli = (db && db.cuentasCobrar || []).filter(c => (c.nombre || "").toLowerCase().includes(q));
+      if (cli.length) {
+        const total = cli.reduce((s, c) => s + num0(c.saldo), 0);
+        const abonos = (db && db.abonos || []).filter(a => a.cliente && a.cliente.toLowerCase().includes(q));
+        const ultimo = abonos.length ? "El último abono fue el " + (abonos[abonos.length - 1].fecha || "s/d") + "." : "No hay abonos registrados.";
+        return {
+          text: `${cli[0].nombre} tiene una deuda pendiente de ${fmtM(total)} USD. ${ultimo}`,
+          bento: { tipo: "modal", title: "Cuenta por cobrar", campos: [{ label: "Cliente", valor: cli[0].nombre }, { label: "Deuda total", valor: fmtM(total) + " USD" }, { label: "Último abono", valor: ultimo }] }
+        };
+      }
+      return "No encontré deuda a nombre de \"" + q + "\".";
+    }
+
+    // ---- RESUMEN EJECUTIVO ----
+    // "¿cómo está el negocio hoy?"
+    if (/(cómo está|como esta|resumen ejecutivo|cómo va|como va)\s+(el negocio|la empresa|hoy|el día)/.test(t)) {
+      const h = herramientas();
+      return "Resumen ejecutivo: ventas de hoy " + h.resumen.ventasHoy + " facturas por " + fmtM(h.resumen.totalHoy) + " Bs. " +
+        "Cartera por cobrar: " + fmtM(h.resumen.carteraCxC) + " USD. " +
+        "Productos con stock bajo: " + h.resumen.stockBajo + ". Clientes registrados: " + h.resumen.clientes + ".";
+    }
 
     // Abrir módulo
     if (/(abre|abrir|muestra|mostrar|irse|\bva al|abreme)\s+(clientes)/.test(t) && puede("clientes")) { openModule("clientes"); return "Abrí el módulo de Clientes."; }
@@ -682,6 +802,17 @@
           filas: h.topDeudores.map(([n, s]) => [n, fmtM(s)])
         }
       };
+    }
+    // ---- MODO MANUAL / DESCONEXIÓN ----
+    // "desconéctate" / "modo manual"
+    if (/(desconéctate|desconectate|modo manual|apágate|apagate|duérmete|duermete|modo tradicional|silencia)/.test(t)) {
+      modoManual();
+      return { text: "Jarvis en modo manual. La pantalla queda en facturación tradicional. Presiona Ctrl+K para reactivarme." };
+    }
+    // "JARVIS actívate" / "reactívate"
+    if (/(actívate|activarte|reactívate|reactivarte|despierta|vuelve)/.test(t)) {
+      reactivar();
+      return { text: "Jarvis activado. Dime, ¿en qué te ayudo?" };
     }
     return null;
   }
@@ -934,9 +1065,16 @@
     J.autoEnviar = true;
   }
 
-  function hablar(texto) {
+  // Voz: usa ElevenLabs (configurado) o speechSynthesis nativo como respaldo.
+  async function hablar(texto) {
+    if (!J.cfg || !J.cfg.voz || !texto) return;
+    const el = J.cfg.elevenlabs;
+    if (el && el.apiKey && el.voiceId) {
+      await hablarElevenLabs(texto, el);
+      return;
+    }
     const synth = window.speechSynthesis;
-    if (!synth || !J.cfg || !J.cfg.voz) return;
+    if (!synth) return;
     try {
       synth.cancel();
       const u = new SpeechSynthesisUtterance(texto);
@@ -948,6 +1086,42 @@
       if (v) u.voice = v;
       synth.speak(u);
     } catch (e) {}
+  }
+
+  // TTS de ElevenLabs (voz clonada estilo JARVIS). Requiere API key + Voice ID
+  // configurados en el panel de ajustes. Genera el audio y lo reproduce.
+  async function hablarElevenLabs(texto, el) {
+    try {
+      const url = "https://api.elevenlabs.io/v1/text-to-speech/" + encodeURIComponent(el.voiceId);
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "xi-api-key": el.apiKey
+        },
+        body: JSON.stringify({
+          text: texto,
+          model_id: el.modelId || "eleven_multilingual_v2",
+          voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+        })
+      });
+      if (!res.ok) throw new Error("ElevenLabs " + res.status);
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      let audioEl = document.getElementById("jarvis-tts");
+      if (!audioEl) {
+        audioEl = document.createElement("audio");
+        audioEl.id = "jarvis-tts";
+        audioEl.autoplay = true;
+        document.body.appendChild(audioEl);
+      }
+      audioEl.src = blobUrl;
+      audioEl.play().catch(() => {});
+    } catch (e) {
+      // Fallback a voz nativa del navegador si falla ElevenLabs.
+      const synth = window.speechSynthesis;
+      if (synth) { try { const u = new SpeechSynthesisUtterance(texto); u.lang = "es-ES"; synth.speak(u); } catch (e2) {} }
+    }
   }
 
   // ------------------------------------------------------------------
@@ -967,6 +1141,27 @@
   }
   function cerrarPanel() { const p = elPanel(); if (p) p.classList.add("hidden"); }
 
+  // Modo manual: desconecta a Jarvis (detiene escucha, oculta widgets) y
+  // deja el POS en modo tradicional de teclado/mouse.
+  function modoManual() {
+    detenerWake();
+    if (J.rec) { try { J.rec.stop(); } catch (e) {} J.rec = null; }
+    if (WWIntent) { try { WWIntent.stop(); } catch (e) {} WWIntent = null; }
+    if (J.cfg) J.cfg.modoManual = true;
+    saveCfg();
+    const o = elOrb(); if (o) o.classList.add("hidden");
+    cerrarPanel();
+    if (J.cfg && J.cfg.voz) hablar("Modo manual activado. Desconectándome.");
+    return { ok: true };
+  }
+  function reactivar() {
+    if (J.cfg) J.cfg.modoManual = false;
+    saveCfg();
+    const o = elOrb(); if (o) o.classList.remove("hidden");
+    abrirPanel();
+    return { ok: true };
+  }
+
   // ------------------------------------------------------------------
   // INICIO
   // ------------------------------------------------------------------
@@ -978,6 +1173,16 @@
       window.JarvisStart = true;
       mostrarSegunRol();
     });
+    // Atajo Ctrl+K: re-despliega el panel de comandos de Jarvis.
+    document.addEventListener("keydown", (ev) => {
+      if (ev.ctrlKey && ev.key.toLowerCase() === "k") {
+        ev.preventDefault();
+        if (J.cfg && J.cfg.modoManual) J.cfg.modoManual = false;
+        reactivar();
+        const inp = $("jarvis-input");
+        if (inp) setTimeout(() => inp.focus(), 60);
+      }
+    });
     if (document.body.classList.contains("logged-in")) mostrarSegunRol();
   }
 
@@ -985,11 +1190,14 @@
     const o = elOrb();
     if (!o) return;
     const tieneAcceso = (typeof rolPuedeModulo !== "function") || rolPuedeModulo("pos");
-    o.classList.remove("hidden");
-    o.style.display = "block";
-    if (window.jarvisOrb && window.jarvisOrb.setVisible) window.jarvisOrb.setVisible(true);
-    if (window.jarvisOrb && window.jarvisOrb.resize) window.jarvisOrb.resize();
-    loadState();
+    loadState().then(() => {
+      // Si está en modo manual, no mostramos el orbe.
+      if (J.cfg && J.cfg.modoManual) { o.classList.add("hidden"); o.style.display = "none"; return; }
+      o.classList.remove("hidden");
+      o.style.display = "block";
+      if (window.jarvisOrb && window.jarvisOrb.setVisible) window.jarvisOrb.setVisible(true);
+      if (window.jarvisOrb && window.jarvisOrb.resize) window.jarvisOrb.resize();
+    });
     const p = elPanel();
     if (p) p.setAttribute("data-lista", "1");
     // Detección de red: solo informa (no bloquea) para saber si se usará offline posteriormente.
@@ -1021,6 +1229,7 @@
     enviar, setProveedor, onModel, guardarKey, alternarMic,
     setOffline, getOffline, guardarOffline, jarvisShowOfflineTab,
     registerProvider, dynamicProviders, alternarWake,
+    mostrarVozTab, guardarVoz, probarVoz, modoManual, reactivar,
     config: CFP
   };
 
