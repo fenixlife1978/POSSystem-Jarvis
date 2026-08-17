@@ -1,0 +1,152 @@
+/* ===== Módulo Taller / Órdenes de Servicio ===== */
+#taller-window.floating { width: 1100px; }
+#taller-nueva-window.floating { width: 1080px; }
+#taller-credito-window.floating { width: 480px; }
+#taller-rec-window.floating { width: 760px; }
+#taller-hist-window.floating { width: 860px; }
+#taller-aceite-window.floating { width: 760px; }
+#taller-consulta-window.floating { width: 1100px; }
+#compartir-window.floating { width: 560px; }
+#compartir-window #compartir-area { width: 100%; }
+
+.taller-filters {
+  background: #ECE9D8;
+  padding: 5px 8px;
+  border-bottom: 1px solid #ccc;
+  display: flex; gap: 8px; align-items: center; font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.taller-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 0;
+  padding: 0 4px 4px 4px;
+}
+#ordenes-taller-body td { font-size: 11px; }
+
+.taller-side {
+  display: flex; flex-direction: column; gap: 6px;
+  border-left: 1px solid #ccc;
+  padding-left: 6px;
+  min-height: 240px;
+}
+.taller-side .panel { margin: 0; }
+
+.taller-veh-box {
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid #b8b4a8;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.taller-placa {
+  font-weight: bold;
+  color: #003399;
+  letter-spacing: 0.04em;
+}
+
+.taller-hist {
+  max-height: 180px;
+  overflow-y: auto;
+  font-size: 11px;
+}
+.taller-total { color: #003399; font-size: 13px; }
+.taller-hist-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 3px 4px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+.taller-hist-item:hover { background: #dfe8ff; }
+
+/* Línea de tiempos / estados */
+.taller-timeline {
+  border: 1px solid #b8b4a8;
+  background: #fff;
+  padding: 6px 8px;
+  font-size: 11px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 14px;
+}
+.taller-timeline b { color: #222; }
+
+/* Badges de estado */
+.tal-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 3px;
+  font-size: 11px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.tal-rec   { background: #e0f2fe; color: #075985; border-color: #7dd3fc; }
+.tal-proc  { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+.tal-list  { background: #dcfce7; color: #166534; border-color: #86efac; }
+.tal-entre { background: #e2e8f0; color: #334155; border-color: #cbd5e1; }
+.tal-anu   { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+
+/* Vehículos del cliente en el formulario */
+.taller-veh-row { display: none; }
+.taller-veh-row.visible { display: table; }
+
+#taller-nueva-window .prov-results,
+#taller-nueva-window .prov-result {
+  position: static;
+  display: block;
+  width: 100%;
+  padding: 4px 6px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 12px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-top: none;
+  text-align: left;
+}
+#taller-nueva-window .prov-result:hover { background: #dfe8ff; }
+#taller-nueva-window .prov-results { display: none; border: 1px solid #888; max-height: 180px; overflow-y: auto; }
+
+#taller-hist-window .prov-results,
+#taller-hist-window .prov-result,
+#taller-aceite-window .prov-results,
+#taller-aceite-window .prov-result {
+  position: static;
+  display: block;
+  width: 100%;
+  padding: 4px 6px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 12px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-top: none;
+  text-align: left;
+}
+#taller-hist-window .prov-result:hover,
+#taller-aceite-window .prov-result:hover { background: #dfe8ff; }
+#taller-hist-window .prov-results,
+#taller-aceite-window .prov-results { display: none; border: 1px solid #888; max-height: 180px; overflow-y: auto; }
+
+/* Contador regresivo de cambio de aceite en la ficha */
+.taller-aceite {
+  margin-top: 6px;
+  padding: 5px 8px;
+  border: 1px solid #b8b4a8;
+  background: #fffbe6;
+  color: #6b5b00;
+  font-size: 12px;
+}
+.taller-aceite.vencido { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+
+/* Recordatorio de servicios programados */
+.rec-aviso {
+  margin: 4px;
+  padding: 10px 12px;
+  background: #fffbe6;
+  border: 1px solid #e8d88a;
+  color: #6b5b00;
+  font-size: 13px;
+  font-weight: bold;
+}

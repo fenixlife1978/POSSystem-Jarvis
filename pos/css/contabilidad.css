@@ -1,0 +1,136 @@
+/* ===== Módulo Contabilidad: Libro Diario (Ingresos y Egresos) =====
+   Identidad del sistema: estilo Windows clásico / claro (beige + blanco + azul).
+   Comparte estética con main.css (.window, .grid, .panel) y app.css (KPIs). */
+
+/* ===== Tarjetas KPI (ingresos / egresos / balance) ===== */
+.cont-kpis {
+  display: flex;
+  gap: 12px;
+  margin: 10px 4px;
+  flex-wrap: wrap;
+}
+.cont-kpi-card {
+  flex: 1;
+  min-width: 180px;
+  background: #ffffff;
+  border: 1px solid #b8b4a8;
+  border-left: 4px solid #999;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.cont-kpi-card.ingreso { border-left-color: #008000; }
+.cont-kpi-card.egreso { border-left-color: #cc0000; }
+.cont-kpi-card.balance { border-left-color: #b45309; }
+.cont-kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #666;
+  display: flex;
+  justify-content: space-between;
+}
+.cont-kpi-val {
+  font-size: 20px;
+  font-weight: bold;
+  color: #003399;
+  margin-top: 2px;
+}
+.cont-kpi-card.ingreso .cont-kpi-val { color: #0a7a0a; }
+.cont-kpi-card.egreso .cont-kpi-val { color: #b00000; }
+.cont-kpi-card.balance .cont-kpi-val { color: #92400e; }
+
+/* ===== Filtros (periodo, rango, búsqueda) ===== */
+.cont-filters {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  background: #ECE9D8;
+  border: 1px solid #b8b4a8;
+  border-radius: 4px;
+  margin: 0 4px 8px;
+}
+.cont-filters label {
+  font-size: 11px;
+  font-weight: bold;
+  color: #003399;
+  display: block;
+  margin-bottom: 3px;
+}
+.cont-filters select,
+.cont-filters input {
+  background: #ffffff;
+  color: #222;
+  border: 1px solid #7F9DB9;
+  border-radius: 2px;
+  padding: 3px 4px;
+  font-size: 12px;
+}
+
+/* ===== Paginación del libro ===== */
+.cont-pag {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 4px;
+  color: #003399;
+  font-size: 11px;
+  font-weight: bold;
+}
+.cont-pag button {
+  background: linear-gradient(to bottom, #f8f6ed 0%, #d6d3c3 100%);
+  color: #222;
+  border: 1px solid #7F9DB9;
+  border-radius: 2px;
+  padding: 3px 12px;
+  font-weight: bold;
+  font-family: inherit;
+  cursor: pointer;
+}
+.cont-pag button:hover { background: linear-gradient(to bottom, #fff 0%, #ece9d8 100%); }
+.cont-pag button:disabled { opacity: 0.4; cursor: default; }
+
+/* ===== Detalle / Auditoría de movimiento ===== */
+.cont-det-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 8px 0;
+}
+.cont-det-box {
+  background: #ffffff;
+  border: 1px solid #b8b4a8;
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+.cont-det-box label {
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #666;
+  display: block;
+  margin-bottom: 3px;
+}
+.cont-det-box .valor {
+  font-size: 15px;
+  font-weight: bold;
+  color: #003399;
+}
+.cont-det-box .concepto {
+  font-size: 12px;
+  font-weight: bold;
+  color: #b45309;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+/* ===== Etiqueta de método de pago ===== */
+.cont-metodo {
+  background: #ECE9D8;
+  color: #222;
+  border-color: #b8b4a8;
+}

@@ -1,0 +1,41 @@
+/* ===== Menú desplegable estilo Windows clásico ===== */
+.menu-bar { position: relative; }
+.menu-item {
+  position: relative;
+  user-select: none;
+}
+.menu-item.active { text-decoration: underline; }
+
+.menu-item .dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 210px;
+  background: #ECE9D8;
+  border: 1px solid #7F9DB9;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.35);
+  padding: 2px;
+  z-index: 2000;
+}
+.menu-item:hover .dropdown,
+.menu-item:focus-within .dropdown { display: block; }
+
+.menu-command {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 4px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  color: #222;
+  cursor: pointer;
+}
+.menu-command:hover { background: #316AC5; color: white; }
+
+.menu-sep {
+  border-top: 1px solid #aaa;
+  margin: 3px 4px;
+}

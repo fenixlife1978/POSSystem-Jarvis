@@ -1,0 +1,8 @@
+/* ===== Módulo Servicios ===== */
+.servicios-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 4px;
+}
+
+#servicios-list { max-height: 480px; overflow: auto; }

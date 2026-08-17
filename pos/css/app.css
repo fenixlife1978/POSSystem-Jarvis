@@ -1,0 +1,352 @@
+/* ===== Componentes nuevos del sistema ===== */
+
+/* Pestañas funcionales */
+[data-tabs] .tab-row { display: flex; align-items: center; border-bottom: 1px solid #aaa; margin-bottom: 6px; }
+[data-tabs] .tab-row .tab,
+[data-tabs] .tab-row .tab-title {
+  padding: 4px 12px;
+  border: 1px solid transparent;
+  border-bottom: 1px solid #aaa;
+  cursor: pointer;
+  color: #003399;
+  font-size: 12px;
+  user-select: none;
+}
+[data-tabs] .tab-row .tab-title { background: linear-gradient(to bottom, #ECE9D8 0%, #B6B4A5 100%); border: 1px solid #aaa; border-bottom: none; font-weight: bold; }
+[data-tabs] .tab-row .tab:hover { background: #f0f0e0; border: 1px solid #aaa; border-bottom: 1px solid #aaa; }
+[data-tabs] .tab-row .tab-active { background: #316AC5 !important; color: #fff !important; border: 1px solid #0b3d91; border-bottom: none; }
+.hidden-panel { display: none !important; }
+
+.num-label { font-weight: bold; color: #003399; padding: 3px 4px; }
+
+/* Precios tridireccionales */
+.pricing-hint { background: #fffbe6; border: 1px solid #e8d88a; padding: 6px 8px; margin: 4px 4px 8px; font-size: 12px; color: #6b5b00; }
+.pricing-result { margin: 6px 4px; font-size: 12px; color: #003399; }
+.pricing-result b { color: #008000; }
+
+/* Ventana de pago */
+.pago-head {
+  display: flex; justify-content: space-between; align-items: center;
+  background: white; border: 1px solid #aaa; padding: 8px 12px; margin: 4px; font-size: 12px;
+}
+.pago-head .pago-label { font-weight: bold; }
+.pago-total { color: #008000; font-weight: bold; font-size: 20px; }
+.pago-sub { color: #555; }
+.pago-usd { color: #0369a1; font-size: 12px; }
+.pago-calc-row {
+  display: flex; align-items: center; gap: 6px;
+  margin: 4px; padding: 6px; background: #ECE9D8; border: 1px solid #aaa; font-size: 12px; flex-wrap: wrap;
+}
+.pago-calc-row label { font-weight: bold; }
+.pago-calc-row .mod-btn { min-height: 30px; }
+.moneda-input { text-align: right; }
+.pago-summary {
+  display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px;
+  margin: 4px; padding: 6px; background: #ECE9D8; border: 1px solid #aaa; font-size: 12px;
+}
+.pago-summary b { color: #003399; }
+.pago-faltante { color: #cc0000; }
+.pago-actions { display: flex; gap: 6px; margin: 6px 4px; flex-wrap: wrap; align-items: center; }
+.pago-confirmar { background: linear-gradient(to bottom, #4caf50 0%, #2e7d32 100%) !important; color: #fff; font-weight: bold; }
+.pago-confirmar:disabled { background: #ccc !important; color: #999; cursor: not-allowed; }
+
+/* Ajuste de inventario */
+.ajuste-nombre { margin-left: 8px; color: #003399; font-weight: bold; }
+
+/* Kardex */
+.kardex-totals { margin: 6px 4px; font-size: 12px; color: #003399; font-weight: bold; }
+
+/* Caja */
+.caja-content { display: grid; grid-template-columns: 1fr 340px; gap: 4px; padding: 4px; }
+.caja-left { display: flex; flex-direction: column; gap: 4px; }
+.caja-left .grid { max-height: 300px; overflow: auto; }
+.caja-right { display: flex; flex-direction: column; gap: 4px; }
+.caja-balance { background: #fffbe6; border: 1px solid #e8d88a; padding: 8px 12px; }
+.caja-balance .balance-label { font-size: 12px; }
+.caja-balance .balance-value { color: #008000; font-weight: bold; font-size: 16px; margin-left: 6px; }
+.open-status.open { color: #008000; }
+.open-status.closed { color: #cc0000; }
+
+/* Devoluciones */
+.r { text-align: right; }
+.dev-form-col { display: flex; flex-direction: column; gap: 4px; }
+.dev-totals { background: white; border: 1px solid #aaa; padding: 6px 10px; font-size: 12px; }
+.dev-totals .cotiz-total-row { color: #003399; font-size: 14px; font-weight: bold; margin-top: 4px; }
+
+/* Reporte vista previa */
+.rep-vista-titulo { font-weight: bold; color: #003399; font-size: 13px; }
+
+/* Ventanas de utilidades: ancho */
+#password-window.floating, #config-window.floating, #parametros-window.floating { width: 560px; }
+#dashboard-window.floating { width: 1200px; }
+#usuarios-window.floating { width: 900px; }
+#respaldos-window.floating { width: 760px; }
+#auditoria-window.floating { width: 900px; }
+#pago-window.floating { width: 760px; }
+#apertura-window.floating, #arqueo-window.floating, #movcaja-window.floating { width: 820px; }
+#ajuste-window.floating { width: 560px; }
+#servicios-window.floating { width: 980px; }
+#kardex-window.floating { width: 820px; }
+#cotizacion-nueva-window.floating { width: 1080px; }
+#reporte-vista-window.floating { width: 900px; }
+
+/* Botones pequeños dentro de tablas */
+.grid .btn-mini { width: 18px; height: 18px; font-size: 10px; padding: 0; }
+
+/* ===== Dashboard ===== */
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.dash-card {
+  background: #ffffff;
+  border: 1px solid #b8b4a8;
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.dash-label { font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.03em; }
+.dash-value { font-size: 20px; font-weight: bold; color: #003399; margin-top: 2px; }
+.dash-value.dash-green { color: #008000; }
+.dash-value.dash-red { color: #cc0000; }
+.dash-sub { font-size: 11px; color: #777; margin-top: 2px; }
+.dash-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dash-col { background: #ffffff; border: 1px solid #b8b4a8; border-radius: 8px; padding: 8px; }
+.dash-col-title { font-size: 12px; font-weight: bold; color: #003399; margin: 0 0 6px 4px; }
+
+/* ===== Dashboard ERP: KPIs, gráficos ===== */
+.dash-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.dash-kpis-2 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 1100px) { .dash-kpis, .dash-kpis-2 { grid-template-columns: repeat(2, 1fr); } }
+.dash-value.dash-amber { color: #b45309; }
+.dash-charts {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.dash-bars {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  height: 170px;
+  padding: 8px 4px 0;
+}
+.dash-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+.dash-bar-track {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.dash-bar {
+  width: 55%;
+  background: linear-gradient(to top, #1d4ed8, #3b82f6);
+  border-radius: 3px 3px 0 0;
+  min-height: 4px;
+  transition: height 0.3s;
+}
+.dash-bar-label { font-size: 10px; color: #666; margin-top: 3px; }
+.dash-bar-val { font-size: 10px; color: #333; font-weight: bold; }
+.dash-donut-wrap { display: flex; align-items: center; gap: 18px; padding: 10px 6px; }
+.dash-donut {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px #d6d3cb inset;
+}
+.dash-legend { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: #333; }
+.dash-legend-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.dash-legend-item b { margin-left: auto; padding-left: 8px; }
+.dash-legend-color { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex-shrink: 0; }
+.dash-cols3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 1100px) { .dash-cols3 { grid-template-columns: 1fr; } }
+
+/* ===== Administrador: el Dashboard es la pantalla principal y fija ===== */
+#admin-main { display: none; }
+body.role-admin #pos-window { height: calc(100vh - 24px); }
+body.role-admin #admin-main {
+  display: block;
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
+  background: #ECE9D8;
+}
+body.role-admin .pos-content { display: none; }
+body.role-admin .toolbar { display: none; }
+body.role-admin.admin-pos-view #admin-main { display: none; }
+body.role-admin.admin-pos-view .pos-content { display: grid; }
+body.role-admin.admin-pos-view .toolbar { display: grid; }
+
+/* ===== Modal de cambio de Tasa BCV (desde encabezado) ===== */
+.tasa-overlay {
+  position: fixed; inset: 0; display: flex;
+  align-items: center; justify-content: center;
+  background: rgba(10, 15, 40, .55);
+  z-index: 2147483000;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+/* ===== Modales de catalogos (agregar/eliminar opciones) — consistente con Parámetros ===== */
+.opc-overlay {
+  position: fixed; inset: 0; display: flex;
+  align-items: center; justify-content: center;
+  background: rgba(10, 15, 40, .55);
+  z-index: 2147483000;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+.opc-modal {
+  background: #ECE9D8;
+  border: 2px solid #0055EA;
+  border-radius: 8px;
+  box-shadow: 4px 4px 16px rgba(0,0,0,.5);
+  width: min(440px, 92vw);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.opc-modal .title-bar {
+  height: 26px;
+  padding: 3px 8px;
+}
+.opc-body { padding: 18px 20px; background: #ECE9D8; }
+.opc-msg {
+  font-size: 14px;
+  color: #222;
+  margin-bottom: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.opc-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #aab7c2;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.opc-input:focus {
+  border-color: #1976d2;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(25,118,210,.15);
+}
+.opc-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 20px;
+  background: #ECE9D8;
+}
+.opc-btn {
+  padding: 8px 20px;
+  border: 0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.opc-ok { background: #2f6bff; color: #fff; }
+.opc-ok:hover { background: #195fcc; }
+.opc-cancel { background: #fff; color: #222; border: 1px solid #c7ced9; }
+.opc-cancel:hover { background: #eef2f5; }
+
+/* ===== Diálogos base (uiAlert / uiConfirm / uiPrompt) — identidad del sistema ===== */
+.ui-dialog-overlay {
+  position: fixed; inset: 0; display: none;
+  align-items: center; justify-content: center;
+  background: rgba(10, 15, 40, .45);
+  z-index: 2147483000;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+.ui-dialog-box {
+  width: min(470px, 92vw);
+  background: #ECE9D8;
+  border: 2px solid #0055EA;
+  border-radius: 8px;
+  box-shadow: 4px 4px 16px rgba(0,0,0,.5);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.ui-dialog-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(to bottom, #1F61D6 0%, #0B3D91 50%, #082F73 100%);
+  color: #fff;
+  font-weight: bold;
+  padding: 4px 8px;
+  height: 26px;
+  border-bottom: 1px solid #001a4d;
+}
+.ui-dialog-head .app-icon { font-size: 14px; }
+.ui-dialog-title { font-size: 12px; }
+.ui-dialog-body { padding: 18px 20px 10px; background: #ECE9D8; }
+.ui-dialog-msg {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #222;
+  white-space: pre-wrap;
+  min-height: 24px;
+}
+.ui-dialog-inputwrap {
+  padding: 14px 0 6px;
+  display: flex;
+  justify-content: center;
+}
+.ui-dialog-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #aab7c2;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.ui-dialog-input:focus {
+  border-color: #1976d2;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(25,118,210,.15);
+}
+.ui-dialog-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 20px 16px;
+  background: #ECE9D8;
+}
+.ui-dialog-foot .mod-btn {
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+}
+.ui-dialog-ok {
+  background: #2f6bff !important;
+  color: #fff;
+  border-color: #1f4fb8 !important;
+}
+.ui-dialog-ok:hover { background: #195fcc !important; color: #fff !important; }
+.ui-dialog-cancel {
+  background: #fff;
+  color: #222;
+  border-color: #c7ced9;
+}
+.ui-dialog-cancel:hover { background: #eef2f5; }
+body.role-admin.admin-pos-view #pos-window { height: calc(100vh - 24px); }

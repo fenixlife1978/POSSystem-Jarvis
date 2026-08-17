@@ -1,0 +1,107 @@
+/* Compras */
+.compras-detail {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 0;
+  padding: 0 4px 4px 4px;
+}
+#compras-detail-grid { min-height: 200px; }
+
+/* Ventana Última Factura */
+.uf-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 0;
+  padding: 0 4px 4px 4px;
+}
+#uf-grid { min-height: 200px; }
+.uf-info {
+  font-size: 12px;
+  background: #f8f6ed;
+  border: 1px solid #aaa;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+}
+#uf-totals { margin-top: 6px; }
+
+/* Búsqueda inteligente de proveedor */
+.prov-search { position: relative; }
+.prov-results {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #7F9DB9;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.25);
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 2000;
+}
+.prov-results.show { display: block; }
+.prov-results button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: none;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.prov-results button:hover { background: #316AC5; color: #fff; }
+
+/* Los resultados fluyen dentro del formulario (sin superponerse a otros campos) */
+#compra-nueva-window .prov-results {
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+  margin-top: 3px;
+  box-shadow: none;
+}
+#pos-window .prov-results {
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+  margin-top: 3px;
+  box-shadow: none;
+}
+
+/* Tabla de recepción compacta (más columnas) */
+.comp-grid th { font-size: 9px; white-space: nowrap; }
+.comp-grid td { font-size: 10px; }
+.comp-grid td:nth-child(3), .comp-grid td:nth-child(4), .comp-grid td:nth-child(5),
+.comp-grid td:nth-child(7), .comp-grid td:nth-child(8), .comp-grid td:nth-child(9) { text-align: right; }
+.comp-grid td:nth-child(6) { text-align: center; }
+
+/* Nueva Compra: dos columnas */
+.comp-n-content {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 12px;
+  padding: 8px 12px 12px 12px;
+  align-items: start;
+}
+.comp-n-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+#compra-nueva-window.floating { width: 1120px; }
+#compra-nueva-window .panel .grid { width: 100%; }
+#comp-n-body td:nth-child(2) { white-space: normal; min-width: 130px; }
+
+/* Información del detalle en el historial de compras */
+.compra-detail-info {
+  font-size: 12px;
+  background: #f8f6ed;
+  border: 1px solid #aaa;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}

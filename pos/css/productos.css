@@ -1,0 +1,24 @@
+/* Productos */
+.productos-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 4px;
+  padding: 4px;
+}
+#productos-list { height: 420px; overflow: auto; }
+#productos-list tbody tr { cursor: pointer; }
+.producto-tabs { display: flex; flex-direction: column; }
+.producto-tabs .tab-title {
+  background: linear-gradient(to bottom, #ECE9D8 0%, #B6B4A5 100%);
+  border: 1px solid #aaa;
+  border-bottom: none;
+  padding: 4px 14px;
+  font-weight: bold;
+  color: #003399;
+}
+.producto-tabs .tab { color: #003399; padding: 4px 14px; cursor: pointer; }
+
+/* Campos administrables (catálogo con agregar/eliminar) */
+.managed-field { display: inline-flex; align-items: center; gap: 2px; }
+.managed-field select { max-width: 150px; }
+#prod-stock-ini:disabled { background: #ece9d8; color: #666; cursor: not-allowed; }

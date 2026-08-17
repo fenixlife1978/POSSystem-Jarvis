@@ -1,0 +1,53 @@
+/* ===== Sistema de ventanas flotantes y arrastrables ===== */
+body { position: relative; }
+
+.window.floating {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  width: 960px;
+  max-width: 94vw;
+  max-height: 92vh;
+  overflow: auto;
+  resize: both;
+  z-index: 100;
+  box-shadow: 4px 4px 16px rgba(0,0,0,.5);
+}
+.window.floating .title-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex: 0 0 auto;
+  user-select: none;
+}
+.window.floating .title-bar.dragging { cursor: move; }
+.window.floating.hidden { display: none !important; }
+.window.floating.maximized {
+  left: 0 !important;
+  top: 0 !important;
+  width: 100vw !important;
+  max-width: none !important;
+  max-height: none !important;
+  height: calc(100vh - 34px) !important;
+  border-radius: 0;
+  resize: none;
+  z-index: 9990;
+}
+.window.floating.maximized .title-bar { position: static; }
+
+/* Anchos sugeridos por módulo */
+#clientes-window.floating   { width: 1060px; }
+#productos-window.floating  { width: 1060px; }
+#cotizaciones-window.floating { width: 1000px; }
+#devoluciones-window.floating  { width: 1180px; }
+#caja-window.floating       { width: 1080px; }
+#compras-window.floating    { width: 1000px; }
+#inventario-window.floating { width: 1000px; }
+#reportes-window.floating   { width: 940px; }
+#buscar-window.floating     { width: 720px; max-height: 70vh; }
+#ultima-factura-window.floating { width: 980px; }
+#cierre-resumen-window.floating { width: 540px; }
+#contabilidad-window.floating { width: 1080px; }
+#cont-gasto-window.floating { width: 620px; }
+#cont-detalle-window.floating { width: 720px; }

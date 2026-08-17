@@ -1,0 +1,31 @@
+/* Clientes */
+.clientes-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 4px;
+  padding: 4px;
+}
+#clientes-list { height: 420px; overflow: auto; }
+#clientes-list tbody tr { cursor: pointer; }
+.cliente-tabs { display: flex; flex-direction: column; }
+.tab-row {
+  display: flex; align-items: center; gap: 0;
+  border-bottom: 1px solid #aaa;
+  margin-bottom: 6px;
+}
+.tab-title {
+  background: linear-gradient(to bottom, #ECE9D8 0%, #B6B4A5 100%);
+  border: 1px solid #aaa;
+  border-bottom: none;
+  padding: 4px 14px;
+  font-weight: bold;
+  color: #003399;
+}
+.tab {
+  padding: 4px 14px;
+  border: 1px solid transparent;
+  border-bottom: 1px solid #aaa;
+  cursor: pointer;
+  color: #003399;
+}
+.tab:hover { background: #f0f0e0; border: 1px solid #aaa; border-bottom: 1px solid #aaa; }

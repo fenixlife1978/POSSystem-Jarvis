@@ -1,0 +1,104 @@
+/* Caja */
+.caja-content {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 0;
+  padding: 4px;
+}
+.caja-left, .caja-right { display: flex; flex-direction: column; }
+.caja-left fieldset.panel, .caja-right fieldset.panel { margin: 2px; }
+.open-status { color: #008000; font-size: 13px; }
+.caja-balance {
+  background: #ECE9D8;
+  border: 1px solid #aaa;
+  padding: 12px;
+  display: flex; justify-content: space-between; align-items: center;
+  margin: 2px;
+}
+.balance-label { font-size: 14px; font-weight: bold; color: #222; }
+.balance-value { font-size: 20px; font-weight: bold; color: #008000; }
+#mov-caja-body td { font-size: 11px; }
+
+/* Resumen de cierre / conciliación */
+.cr-conciliacion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ECE9D8;
+  border: 1px solid #aaa;
+  padding: 10px 12px;
+  margin: 4px 2px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #222;
+}
+.cr-badge {
+  padding: 4px 12px;
+  border-radius: 3px;
+  font-size: 13px;
+  border: 1px solid transparent;
+}
+.cr-badge.exacta { background: #dcfce7; color: #166534; border-color: #86efac; }
+.cr-badge.pendiente { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+.cr-badge.diferencia { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+.cr-badge.faltante { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+.cr-badge.sobrante { background: #dcfce7; color: #166534; border-color: #86efac; }
+
+/* ===== Apertura de caja ===== */
+.ap-hint {
+  font-size: 11px;
+  color: #444;
+  margin: 6px 4px 0 4px;
+  padding: 4px 6px;
+  background: #fffbe6;
+  border: 1px solid #f5e6a8;
+  border-radius: 3px;
+}
+
+/* ===== Arqueo / Cierre de caja ===== */
+.arq-content { max-width: 820px; }
+.arq-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  background: #ECE9D8;
+  border: 1px solid #aaa;
+  padding: 8px 12px;
+  margin: 2px;
+  font-size: 12px;
+  color: #222;
+}
+.arq-info b { color: #003399; }
+.arq-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin: 4px 2px;
+}
+.arq-card {
+  background: #fff;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  padding: 6px 8px;
+  text-align: center;
+}
+.arq-lbl { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.4px; }
+.arq-val { font-size: 16px; font-weight: bold; color: #003399; margin-top: 2px; }
+.arq-grid { width: 100%; margin: 2px; }
+.arq-grid th { font-size: 11px; }
+.arq-grid td { font-size: 12px; }
+.arq-cur { font-size: 9px; color: #777; font-weight: normal; }
+.arq-diff { font-weight: bold; font-size: 12px; }
+.arq-pos { color: #166534; }
+.arq-neg { color: #b91c1c; }
+.arq-zero { color: #475569; }
+.input-real {
+  width: 90px;
+  padding: 3px 5px;
+  text-align: right;
+  font-size: 12px;
+  border: 1px solid #7F9DB9;
+  background: #fff;
+  font-family: inherit;
+}
+.input-real:focus { border-color: #316AC5; outline: none; box-shadow: 0 0 3px rgba(49, 106, 197, 0.5); }

@@ -1,0 +1,2461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>POSsystem pro - Punto de Venta</title>
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="css/menu.css">
+<link rel="stylesheet" href="css/windows.css">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/pos.css">
+<link rel="stylesheet" href="css/clientes.css">
+<link rel="stylesheet" href="css/productos.css">
+<link rel="stylesheet" href="css/servicios.css">
+<link rel="stylesheet" href="css/cotizaciones.css">
+<link rel="stylesheet" href="css/taller.css">
+<link rel="stylesheet" href="css/devoluciones.css">
+<link rel="stylesheet" href="css/caja.css">
+<link rel="stylesheet" href="css/compras.css">
+<link rel="stylesheet" href="css/inventario.css">
+<link rel="stylesheet" href="css/creditpago.css">
+<link rel="stylesheet" href="css/reportes.css">
+<link rel="stylesheet" href="css/login.css">
+<link rel="stylesheet" href="css/contabilidad.css">
+<link rel="stylesheet" href="css/jarvis.css">
+</head>
+<body>
+
+<!-- ============== LOGIN ============== -->
+<div id="login-screen" class="login-bg">
+  <div class="login-glow login-glow-1"></div>
+  <div class="login-glow login-glow-2"></div>
+  <div class="login-wrapper">
+
+    <!-- Logo e Isotipo del POS -->
+    <div class="brand-container">
+      <img class="logo-icon" src="logo.png" alt="POSsystem pro">
+
+      <div class="brand-title">
+        <span class="pos">POS</span><span class="system">system</span>
+        <span class="brand-badge">pro</span>
+      </div>
+      <div class="brand-subtitle">Soluciones Administrativas</div>
+    </div>
+
+    <!-- Formularios de Acceso -->
+    <div class="login-card">
+      <h2 class="card-title">Acceso al Sistema</h2>
+      <div class="card-subtitle">Ingrese sus credenciales para continuar</div>
+
+      <form action="#" method="POST" onsubmit="event.preventDefault(); doLogin();">
+
+        <!-- Campo Usuario -->
+        <div class="form-group">
+          <svg class="field-icon" viewBox="0 0 24 24">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <input type="text" id="login-usuario" class="form-input" placeholder="Usuario (Email)" autocomplete="username" required>
+        </div>
+
+        <!-- Campo Rol -->
+        <div class="form-group">
+          <svg class="field-icon" viewBox="0 0 24 24">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+          <select id="login-rol" class="form-select" required>
+            <option value="" disabled selected>Rol (e.g., Administrador, Cajero)</option>
+            <option value="admin">Administrador</option>
+            <option value="cajero">Cajero</option>
+            <option value="gerente">Gerente</option>
+          </select>
+        </div>
+
+        <!-- Campo Contraseña -->
+        <div class="form-group">
+          <svg class="field-icon" viewBox="0 0 24 24">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <input type="password" id="login-clave" class="form-input" placeholder="Contraseña" autocomplete="current-password" required>
+        </div>
+
+        <!-- Mensaje de error -->
+        <div class="login-error" id="login-error"></div>
+
+        <!-- Botón de Entrada -->
+        <button type="submit" class="btn-submit">Iniciar Sesión</button>
+
+      </form>
+
+    </div>
+
+    <div class="login-footer">POSsystem pro &nbsp;·&nbsp; Soluciones Administrativas</div>
+
+  </div>
+</div>
+
+<!-- ============== PUNTO DE VENTA ============== -->
+<div class="window" id="pos-window">
+  <div class="title-bar">
+    <div class="title-left">
+      <span class="app-icon">🗔</span>
+      <span class="title-text">POSsystem pro</span>
+    </div>
+    <div class="title-center"><span id="app-title-center">Punto de Venta</span></div>
+    <div class="title-mid-right"><span id="pos-caja-label">CAJA 01</span></div>
+    <div class="title-right">
+      <div class="bcv-widget" id="bcv-widget" title="Haga clic para cambiar la Tasa BCV del sistema" onclick="modificarTasaBCVRapida()">
+        <span class="bcv-title">Tasa BCV:</span>
+        <span class="bcv-val" id="pos-bcv-val">--</span>
+        <span class="bcv-btn">✏️</span>
+      </div>
+      <span id="pos-datetime">23/05/2025&nbsp;&nbsp;10:42 a.m.</span>
+      <button class="win-btn" title="Minimize">─</button>
+      <button class="win-btn" title="Maximize">▢</button>
+      <button class="win-btn" title="Cerrar sesión y salir al login" onclick="logout()">✕</button>
+    </div>
+  </div>
+
+  <div class="menu-bar">
+    <span class="menu-item">Operaciones
+      <span class="dropdown">
+        <button class="menu-command" data-perm="pos" onclick="newSale()">Nueva Venta (F2)</button>
+        <button class="menu-command" data-perm="buscar" onclick="openProductSearch()">Buscar Producto (F3)</button>
+        <button class="menu-command" data-perm="buscar" onclick="openClientSearch()">Buscar Cliente (F4)</button>
+        <button class="menu-command" data-perm="pago" onclick="pay('mixto')">Cobrar / Calculadora (F9)</button>
+        <div class="menu-sep"></div>
+        <button class="menu-command" data-perm="pos" onclick="applyDiscount()">Aplicar Descuento (F8)</button>
+        <button class="menu-command" data-perm="pos" onclick="cancelSale()">Anular Venta (F7)</button>
+        <button class="menu-command" data-perm="caja" onclick="openModule('caja')">Caja (Movimiento de Caja)</button>
+        <div class="menu-sep"></div>
+        <button class="menu-command" data-perm="pos" onclick="exitApp()">Salir (F12)</button>
+      </span>
+    </span>
+    <span class="menu-item">Consultas
+      <span class="dropdown">
+        <button class="menu-command" data-perm="clientes" onclick="openModule('clientes')">Clientes</button>
+        <button class="menu-command" data-perm="productos" onclick="openModule('productos')">Productos</button>
+        <button class="menu-command" data-perm="servicios" onclick="openModule('servicios')">Servicios</button>
+        <button class="menu-command" data-perm="taller" onclick="openModule('taller')">Taller</button>
+        <button class="menu-command" data-perm="cotizaciones" onclick="openModule('cotizaciones')">Cotizaciones</button>
+        <button class="menu-command" data-perm="devoluciones" onclick="nuevaDevolucion()">Devoluciones</button>
+        <button class="menu-command" data-perm="compras" onclick="openModule('compras')">Compras</button>
+        <button class="menu-command" data-perm="proveedores" onclick="openModule('proveedores')">Proveedores</button>
+        <button class="menu-command" data-perm="inventario" onclick="openModule('inventario')">Inventario</button>
+        <div class="menu-sep"></div>
+        <button class="menu-command" data-perm="cxc" onclick="openModule('cxc')">Cuentas por Cobrar</button>
+        <button class="menu-command" data-perm="cxp" onclick="openModule('cxp')">Cuentas por Pagar</button>
+      </span>
+    </span>
+    <span class="menu-item">Reportes
+      <span class="dropdown">
+        <button class="menu-command" data-perm="reportes" onclick="openModule('reportes')">Reportes</button>
+        <button class="menu-command" data-perm="caja" onclick="openModule('caja')">Movimientos de Caja</button>
+      </span>
+    </span>
+    <span class="menu-item">Contabilidad
+      <span class="dropdown">
+        <button class="menu-command" data-perm="contabilidad" onclick="openModule('contabilidad')">Libro Diario (Ingresos y Egresos)</button>
+        <button class="menu-command" data-perm="contabilidad" onclick="contNuevoGasto()">Registrar Egreso Manual</button>
+      </span>
+    </span>
+    <span class="menu-item">Utilidades
+      <span class="dropdown">
+        <button class="menu-command" data-perm="parametros" onclick="openModule('parametros')">Parámetros del Sistema</button>
+        <button class="menu-command" data-perm="config" onclick="openModule('config')">Configuración</button>
+        <button class="menu-command" data-perm="usuarios" onclick="openModule('usuarios')">Usuarios</button>
+        <button class="menu-command" data-perm="password" onclick="openModule('password')">Cambio de Contraseña</button>
+        <button class="menu-command" data-perm="respaldos" onclick="openModule('respaldos')">Respaldos</button>
+        <button class="menu-command" data-perm="auditoria" onclick="openModule('auditoria')">Auditoría</button>
+        <div class="menu-sep"></div>
+        <button class="menu-command" data-perm="dashboard" onclick="abrirDashboard()">Dashboard</button>
+        <button class="menu-command" data-perm="dashboard" onclick="cambiarVistaAdmin()">Alternar Vista Dashboard / POS</button>
+        <button class="menu-command" data-perm="parametros" onclick="resetBaseDeDatos()">Reset de Base de Datos</button>
+        <button class="menu-command" data-perm="parametros" onclick="saveDB();alert('Datos guardados correctamente.')">Guardar Datos</button>
+      </span>
+    </span>
+    <span class="menu-item">Ayuda
+      <span class="dropdown">
+        <button class="menu-command" onclick="alert('Punto de Venta clásico — atajos F2 a F12.')">Acerca de</button>
+        <button class="menu-command" onclick="logout()">Cerrar Sesión</button>
+      </span>
+    </span>
+  </div>
+
+  <div class="toolbar">
+    <button class="tool-btn" data-perm="pos" onclick="newSale()" title="Nueva Venta (F2)"><div class="tool-icon">📄</div><div class="tool-label">F2 - Nueva Venta</div></button>
+    <button class="tool-btn" data-perm="buscar" onclick="openModule('buscar')" title="Buscar (F3)"><div class="tool-icon">🔍</div><div class="tool-label">F3 - Buscar</div></button>
+    <button class="tool-btn" data-perm="buscar" onclick="openClientSearch()" title="Cliente (F4)"><div class="tool-icon">👤</div><div class="tool-label">F4 - Cliente</div></button>
+    <button class="tool-btn" data-perm="taller" onclick="openModule('taller')" title="Taller (F5)"><div class="tool-icon">🔧</div><div class="tool-label">F5 - Taller</div></button>
+    <button class="tool-btn" data-perm="devoluciones" onclick="nuevaDevolucion()" title="Devolución (F6)"><div class="tool-icon">↩</div><div class="tool-label">F6 - Devolución</div></button>
+    <button class="tool-btn" data-perm="pos" onclick="applyDiscount()" title="Descuento al producto seleccionado (F8)"><div class="tool-icon">%</div><div class="tool-label">F8 - Descuento</div></button>
+    <button class="tool-btn" data-perm="pago" onclick="pay('mixto')" title="Cobrar / Calculadora (F9)"><div class="tool-icon">💵</div><div class="tool-label">F9 - Cobrar</div></button>
+    <button class="tool-btn" data-perm="pos" onclick="exitApp()" title="Salir (F12)"><div class="tool-icon">🚪</div><div class="tool-label">F12 - Salir</div></button>
+  </div>
+
+  <!-- Pantalla principal y fija del Administrador: Dashboard -->
+  <div class="admin-main" id="admin-main"></div>
+
+  <div class="pos-content">
+    <div class="pos-left">
+      <fieldset class="panel">
+        <legend>Datos del Cliente (F4)</legend>
+        <table class="form-table">
+          <tr>
+            <td><label>Código:</label></td>
+            <td>
+              <input type="text" id="cliente-codigo" value="000001" class="input-small">
+              <button class="btn-mini" title="Buscar cliente" onclick="openClientSearch()">...</button>
+            </td>
+          </tr>
+          <tr>
+            <td><label>Nombre:</label></td>
+            <td>
+              <div class="prov-search">
+                <input type="text" id="cliente-nombre" value="CONSUMIDOR FINAL" class="input-wide" autocomplete="off" placeholder="Nombre, apellido o palabra clave..." oninput="buscarClientePos()" onkeydown="onClientePosKey(event)">
+                <div class="prov-results" id="cliente-pos-results"></div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><label>Dirección:</label></td>
+            <td><input type="text" id="cliente-direccion" class="input-wide"></td>
+          </tr>
+          <tr>
+            <td><label>Doc. Identidad:</label></td>
+            <td>
+              <select id="cliente-doc-tipo" class="input-mini" title="Tipo de documento (V-, E-, J- o G-)">
+                <option value="V-" selected>V-</option>
+                <option value="E-">E-</option>
+                <option value="J-">J-</option>
+                <option value="G-">G-</option>
+              </select>
+              <input type="text" id="cliente-rif" class="input-small" placeholder="Nº de documento" onchange="formatearCedulaInputPOS()" onkeydown="if(event.key==='Enter'){event.preventDefault();buscarClientePorDocumento();}">
+              <button class="btn-mini" title="Buscar cliente por documento" onclick="buscarClientePorDocumento()">🔍</button>
+              <label style="margin-left:8px">Teléfono:</label>
+              <input type="text" id="cliente-telefono" class="input-small">
+            </td>
+          </tr>
+          <tr id="cliente-nuevo-row" style="display:none">
+            <td></td>
+            <td>
+              <label class="nuevo-cliente-check">
+                <input type="checkbox" id="cliente-nuevo">
+                <span>Agregar Cliente Nuevo</span>
+              </label>
+              <span class="nuevo-cliente-hint">El documento no existe en la base de datos. Tilde la casilla y complete los datos; al finalizar la venta el cliente quedará registrado automáticamente.</span>
+            </td>
+          </tr>
+          <tr>
+            <td><label>Saldo:</label></td>
+            <td>
+              <span id="cliente-saldo" class="saldo-badge saldo-cero">$ 0,00</span>
+              <button class="btn-mini" id="btn-cobrar-deuda" title="Cobrar deuda pendiente del cliente" onclick="cobrarDeudaCliente()" style="display:none">💳 Pagar Deuda</button>
+              <label class="credito-check" title="Marcar para vender a crédito">
+                <input type="checkbox" id="cliente-credito" onchange="toggleCredito()">
+                <span>Crédito</span>
+              </label>
+            </td>
+          </tr>
+        </table>
+      </fieldset>
+
+      <fieldset class="panel">
+        <legend>Detalle de la Venta</legend>
+        <div class="cart-hint">Haga clic sobre un producto y presione <b>F8</b> para aplicarle descuento <b>solo a ese producto</b>.</div>
+        <table class="grid" id="detalle-venta">
+          <thead>
+            <tr>
+              <th>Código</th><th>Descripción</th><th>Cantidad</th><th>Precio USD</th><th>Precio Bs.</th><th>Desc.%</th><th>Total</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="detalle-venta-body"></tbody>
+        </table>
+      </fieldset>
+
+      <div class="observaciones-row">
+        <label>Observaciones:</label>
+        <input type="text" id="observaciones" class="input-wide">
+      </div>
+    </div>
+
+    <div class="pos-right-top">
+      <div class="iva-line"><span class="iva-label" id="iva-label">I.V.A. (16 %)</span><span class="iva-value" id="iva-amount">0,00</span></div>
+      <div class="total-line"><span class="total-label">TOTAL A PAGAR:</span><span class="total-value" id="total-pagar">0,00</span><span class="total-usd" id="total-pagar-usd">(0,00 $)</span></div>
+    </div>
+
+    <div class="pos-right-mid">
+      <fieldset class="panel">
+        <legend>Totales</legend>
+        <table class="totales-table">
+          <tr><td>Total Bruto:</td><td class="num" id="t-bruto">0,00</td></tr>
+          <tr><td>Descuento:</td><td class="num" id="t-desc">0,00</td></tr>
+          <tr><td>&nbsp;</td><td></td></tr>
+          <tr><td>Sub-Total:</td><td class="num" id="t-sub">0,00</td></tr>
+          <tr><td id="t-iva-label">I.V.A. (16%):</td><td class="num" id="t-iva">0,00</td></tr>
+          <tr class="total-row"><td><b>TOTAL A PAGAR:</b></td><td class="num"><b id="t-total">0,00</b></td></tr>
+          <tr><td>Equiv. USD (tasa BCV):</td><td class="num" id="t-total-usd">0,00 $</td></tr>
+        </table>
+      </fieldset>
+    </div>
+
+    <div class="pos-right-bottom">
+      <div class="caja-btn-col" id="caja-btn-col">
+        <button class="caja-btn abrir" id="btn-abrir-caja" onclick="abrirCajaModal()" title="Abrir la caja para iniciar la jornada">📂 <span>Abrir Caja</span></button>
+        <button class="caja-btn cerrar" id="btn-cerrar-caja" onclick="cierreCajaModal()" title="Realizar arqueo y cerrar la caja" style="display:none">🔒 <span>Cerrar Caja</span></button>
+      </div>
+      <button class="cobrar-btn" data-perm="pago" onclick="pay('mixto')">💵 <span>COBRAR</span><small>Total Bs. <b id="cobrar-total">0,00</b> · <span class="usd-hint">0,00 $</span></small></button>
+      <button class="ultima-btn" data-perm="pago" onclick="abrirUltimaFactura()" title="Ver y reimprimir la última factura o buscar facturas del día">🧾 Última Factura</button>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span>Usuario: <b id="status-usuario">ADMIN</b></span>
+    <span>Turno: <b id="status-turno">1</b></span>
+    <span id="status-caja">Caja: CERRADA</span>
+  </div>
+</div>
+
+<!-- ============== MÓDULO CLIENTES ============== -->
+<div class="window hidden" id="clientes-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🗔</span><span class="title-text">Clientes</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('clientes-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="nuevoCliente()"><span class="mod-icon">📄</span> Nuevo (F2)</button>
+    <button class="mod-btn" onclick="guardarCliente()"><span class="mod-icon">💾</span> Guardar (F4)</button>
+    <button class="mod-btn" data-perm="clientes-eliminar" onclick="eliminarCliente()"><span class="mod-icon">❌</span> Eliminar (F6)</button>
+    <button class="mod-btn" onclick="document.getElementById('clientes-search').focus()"><span class="mod-icon">🔍</span> Buscar (F3)</button>
+    <button class="mod-btn" data-perm="clientes-imprimir" onclick="imprimirClientes()"><span class="mod-icon">🖨️</span> Imprimir (F7)</button>
+    <button class="mod-btn" onclick="seleccionarClienteEnPOS()"><span class="mod-icon">✅</span> Usar en POS</button>
+    <button class="mod-btn" data-perm="clientes-exportar" onclick="exportarClientes()"><span class="mod-icon">📤</span> Exportar</button>
+    <button class="mod-btn" onclick="abrirDeudaInicialCliente()"><span class="mod-icon">💰</span> Deuda Inicial por Cobrar</button>
+    <button class="mod-btn" onclick="exportarPDFClientes()"><span class="mod-icon">📄</span> Exportar PDF</button>
+    <button class="mod-btn" onclick="compartirClientes()"><span class="mod-icon">🤝</span> Compartir</button>
+    <button class="mod-btn" onclick="closeWindow('clientes-window')"><span class="mod-icon">🚪</span> Salir (F12)</button>
+  </div>
+  <div class="module-search">
+    <span>Buscar por:</span>
+    <select id="clientes-campo"><option>Código</option><option>Nombre</option><option>RIF</option></select>
+    <span>Criterio:</span>
+    <input type="text" id="clientes-search" class="input-medium" oninput="buscarCliente()">
+    <button class="btn-mini" onclick="document.getElementById('clientes-search').value='';buscarCliente()">✕</button>
+  </div>
+  <div class="module-content">
+    <div class="clientes-grid">
+      <table class="grid" id="clientes-list">
+        <thead><tr><th>Código</th><th>Nombre/Razón Social</th></tr></thead>
+        <tbody id="clientes-body"></tbody>
+      </table>
+      <div class="cliente-tabs" data-tabs>
+        <div class="tab-row">
+          <span class="tab-title tab-active" data-tab-target="cli-panel-datos">Datos Generales</span>
+          <span class="tab" data-tab-target="cli-panel-fiscales">Datos Fiscales</span>
+          <span class="tab" data-tab-target="cli-panel-contactos">Contactos</span>
+          <span class="tab" data-tab-target="cli-panel-comerciales">Datos Comerciales</span>
+          <span class="tab" data-tab-target="cli-panel-obs">Observaciones</span>
+        </div>
+        <div id="cli-panel-datos" data-panel>
+          <table class="form-table">
+            <tr><td><label>Tipo de Persona:</label></td><td>
+              <select id="cli-tipo-persona" onchange="cambiarTipoPersona()">
+                <option value="natural">Persona Natural</option>
+                <option value="juridica">Persona Jurídica</option>
+              </select>
+            </td></tr>
+            <tr><td><label>Código:</label></td><td><input type="text" id="cli-cod" class="input-small"></td>
+                <td><label>Doc. Identidad / R.I.F.:</label></td><td id="cli-doc-cell">
+                <select id="cli-doc-tipo" class="input-mini">
+                  <option value="V-" selected>V-</option>
+                  <option value="E-">E-</option>
+                  <option value="J-">J-</option>
+                  <option value="G-">G-</option>
+                </select>
+                <input type="text" id="cli-doc-num" class="input-small" placeholder="00000000-0">
+                </td></tr>
+            <tr><td><label id="cli-nombre-label">Nombres y Apellidos:</label></td><td colspan="3"><input type="text" id="cli-nombre" class="input-wide"></td></tr>
+            <tr><td><label>Dirección:</label></td><td colspan="3"><input type="text" id="cli-dir" class="input-wide"></td></tr>
+          </table>
+        </div>
+        <div id="cli-panel-fiscales" data-panel class="hidden-panel">
+          <table class="form-table">
+            <tr><td id="cli-rif-label"><label>R.I.F. completo:</label></td><td id="cli-rif-input"><input type="text" id="cli-rif" class="input-medium" placeholder="V-12345678-0"></td>
+                <td id="cli-fisc-extra-label"><label id="cli-representante-label">Representante Legal:</label></td><td id="cli-fisc-extra-input"><input type="text" id="cli-representante" class="input-medium"></td></tr>
+            <tr id="cli-natural-info"><td colspan="4"><small>Persona Natural: cédula de identidad con formato <b>V-/E- NNNNNNNN</b> (6 a 8 dígitos; el dígito verificador es opcional). El <b>R.I.F. es opcional</b>: puede registrarse solo con la cédula.</small></td></tr>
+            <tr id="cli-juridica-info" class="hidden-panel"><td colspan="4"><small>Persona Jurídica: RIF con formato <b>J-/G- NNNNNNNNN-N</b> (9 dígitos + dígito verificador). Debe indicar el representante legal.</small></td></tr>
+          </table>
+        </div>
+        <div id="cli-panel-contactos" data-panel class="hidden-panel">
+          <table class="form-table">
+            <tr><td><label>Teléfonos:</label></td><td colspan="3"><input type="text" id="cli-tel" class="input-wide"></td></tr>
+            <tr><td><label>Correo Electrónico:</label></td><td colspan="3"><input type="text" id="cli-email" class="input-wide"></td></tr>
+            <tr><td><label>Celular:</label></td><td><input type="text" id="cli-cel" class="input-medium"></td>
+                <td><label>Contacto:</label></td><td><input type="text" id="cli-contacto" class="input-medium"></td></tr>
+          </table>
+        </div>
+        <div id="cli-panel-comerciales" data-panel class="hidden-panel">
+          <table class="form-table">
+            <tr><td><label>Tipo de Cliente:</label></td><td><select id="cli-tipo" onchange="cambiarTipoCliente()"><option>Contado</option><option>Crédito</option><option>Mixto</option></select></td>
+                <td><label>Límite de Crédito:</label></td><td><input type="text" inputmode="decimal" id="cli-lim" class="input-small" value="0,00"><label>Días de Crédito:</label><input type="text" inputmode="decimal" id="cli-dias" class="input-small" value="0"></td></tr>
+            <tr><td><label>Vendedor Asignado:</label></td><td colspan="3"><select id="cli-vend"><option>--- NINGUNO ---</option></select></td></tr>
+          </table>
+        </div>
+        <div id="cli-panel-obs" data-panel class="hidden-panel">
+          <textarea id="cli-obs" class="input-wide" rows="3" placeholder="Observaciones del cliente..."></textarea>
+        </div>
+        <fieldset class="mini-panel">
+          <legend>Historial de Compras</legend>
+          <table class="grid">
+            <tr><td>Última Compra:</td><td id="cli-ultima">—</td></tr>
+            <tr><td>Total Compras:</td><td id="cli-total">0,00</td></tr>
+            <tr><td>Saldo Pendiente:</td><td id="cli-saldo">0,00</td></tr>
+          </table>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MÓDULO PROVEEDORES ============== -->
+<div class="window hidden" id="proveedores-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🏭</span><span class="title-text">Proveedores</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('proveedores-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="nuevoProveedor()"><span class="mod-icon">📄</span> Nuevo (F2)</button>
+    <button class="mod-btn" onclick="guardarProveedorMaestro()"><span class="mod-icon">💾</span> Guardar (F4)</button>
+    <button class="mod-btn" onclick="eliminarProveedorMaestro()"><span class="mod-icon">❌</span> Eliminar (F6)</button>
+    <button class="mod-btn" onclick="document.getElementById('proveedores-search').focus()"><span class="mod-icon">🔍</span> Buscar (F3)</button>
+    <button class="mod-btn" onclick="abrirDeudaInicialProveedor()"><span class="mod-icon">💰</span> Deuda Inicial por Pagar</button>
+    <button class="mod-btn" data-perm="proveedores-imprimir" onclick="imprimirProveedores()"><span class="mod-icon">🖨️</span> Imprimir (F7)</button>
+    <button class="mod-btn" data-perm="proveedores-exportar" onclick="exportarProveedores()"><span class="mod-icon">📤</span> Exportar</button>
+    <button class="mod-btn" onclick="exportarPDFProveedores()"><span class="mod-icon">📄</span> Exportar PDF</button>
+    <button class="mod-btn" onclick="compartirProveedores()"><span class="mod-icon">🤝</span> Compartir</button>
+    <button class="mod-btn" onclick="closeWindow('proveedores-window')"><span class="mod-icon">🚪</span> Salir (F12)</button>
+  </div>
+  <div class="module-search">
+    <span>Buscar:</span>
+    <input type="text" id="proveedores-search" class="input-medium" oninput="buscarProveedorMaestro()" placeholder="Nombre, RIF o teléfono...">
+    <button class="btn-mini" onclick="document.getElementById('proveedores-search').value='';buscarProveedorMaestro()">✕</button>
+  </div>
+  <div class="module-content">
+    <div class="clientes-grid">
+      <table class="grid" id="proveedores-list">
+        <thead><tr><th>Código</th><th>Nombre / Razón Social</th><th>RIF</th></tr></thead>
+        <tbody id="proveedores-body"></tbody>
+      </table>
+      <div class="cliente-tabs" data-tabs>
+        <div class="tab-row">
+          <span class="tab-title tab-active" data-tab-target="prov-panel-datos">Datos Generales</span>
+          <span class="tab" data-tab-target="prov-panel-contactos">Contacto</span>
+          <span class="tab" data-tab-target="prov-panel-deudas">Deudas</span>
+        </div>
+        <div id="prov-panel-datos" data-panel>
+          <table class="form-table">
+            <tr><td><label>Código:</label></td><td><input type="text" id="prov-cod" class="input-small"></td>
+                <td><label>RIF:</label></td><td><input type="text" id="prov-rif" class="input-medium" placeholder="J-123456789-0"></td></tr>
+            <tr><td><label>Nombre / Razón Social:</label></td><td colspan="3"><input type="text" id="prov-nombre" class="input-wide"></td></tr>
+            <tr><td><label>Dirección:</label></td><td colspan="3"><input type="text" id="prov-dir" class="input-wide"></td></tr>
+          </table>
+        </div>
+        <div id="prov-panel-contactos" data-panel class="hidden-panel">
+          <table class="form-table">
+            <tr><td><label>Teléfono:</label></td><td><input type="text" id="prov-tel" class="input-medium"></td>
+                <td><label>Correo:</label></td><td><input type="text" id="prov-email" class="input-medium"></td></tr>
+            <tr><td><label>Contacto:</label></td><td><input type="text" id="prov-contacto" class="input-medium"></td>
+                <td><label>Observaciones:</label></td><td><input type="text" id="prov-obs" class="input-medium"></td></tr>
+          </table>
+        </div>
+        <div id="prov-panel-deudas" data-panel class="hidden-panel">
+          <fieldset class="mini-panel">
+            <legend>Deudas Iniciales por Pagar</legend>
+            <table class="grid">
+              <thead><tr><th>Nº</th><th>Fecha</th><th>Vencimiento</th><th style="text-align:right">Monto $</th><th>Estado</th></tr></thead>
+              <tbody id="prov-deudas-body"></tbody>
+            </table>
+          </fieldset>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== DEUDA INICIAL POR PAGAR (PROVEEDOR) ============== -->
+<div class="window hidden" id="prov-deuda-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">💰</span><span class="title-text">Deuda Inicial por Pagar</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="cerrarDeudaInicialProveedor()">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Registro de Deuda Inicial</legend>
+      <table class="form-table">
+        <tr><td><label>Proveedor:</label></td><td><input type="text" id="prov-ded-proveedor" class="input-large" readonly></td></tr>
+        <tr><td><label>Fecha de la Deuda:</label></td><td><input type="text" id="prov-ded-fecha" class="input-medium"></td></tr>
+        <tr><td><label>Monto (USD):</label></td><td><input type="text" inputmode="decimal" id="prov-ded-monto" class="input-medium" oninput="equivDeudaInicialProv()"><div class="pago-usd" id="prov-ded-monto-usd"></div></td></tr>
+        <tr><td><label>Tipo:</label></td><td>
+          <select id="prov-ded-tipo" onchange="toggleTipoDeudaInicialProv()">
+            <option value="vencimiento">Con Vencimiento</option>
+            <option value="abierta">Deuda Abierta</option>
+          </select>
+        </td></tr>
+        <tr id="prov-ded-fila-venc"><td><label>Vencimiento:</label></td><td><input type="text" id="prov-ded-vencimiento" class="input-medium"></td></tr>
+        <tr><td><label>Motivo:</label></td><td><input type="text" id="prov-ded-motivo" class="input-large" placeholder="Ej.: Mercancía inicial, saldo de apertura..."></td></tr>
+      </table>
+    </fieldset>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="guardarDeudaInicialProveedor()">✅ Guardar Deuda</button>
+      <button class="mod-btn" onclick="cerrarDeudaInicialProveedor()">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+<!-- ============== DEUDA INICIAL POR COBRAR (CLIENTE) ============== -->
+<div class="window hidden" id="cli-deuda-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">💰</span><span class="title-text">Deuda Inicial por Cobrar</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="cerrarDeudaInicialCliente()">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Registro de Deuda Inicial</legend>
+      <table class="form-table">
+        <tr><td><label>Cliente:</label></td><td><input type="text" id="cli-ded-cliente" class="input-large" readonly></td></tr>
+        <tr><td><label>Fecha de la Deuda:</label></td><td><input type="text" id="cli-ded-fecha" class="input-medium"></td></tr>
+        <tr><td><label>Monto (USD):</label></td><td><input type="text" inputmode="decimal" id="cli-ded-monto" class="input-medium" oninput="equivDeudaInicialCli()"><div class="pago-usd" id="cli-ded-monto-usd"></div></td></tr>
+        <tr><td><label>Tipo:</label></td><td>
+          <select id="cli-ded-tipo" onchange="toggleTipoDeudaInicialCli()">
+            <option value="vencimiento">Con Vencimiento</option>
+            <option value="abierta">Deuda Abierta</option>
+          </select>
+        </td></tr>
+        <tr id="cli-ded-fila-venc"><td><label>Vencimiento:</label></td><td><input type="text" id="cli-ded-vencimiento" class="input-medium"></td></tr>
+        <tr><td><label>Motivo:</label></td><td><input type="text" id="cli-ded-motivo" class="input-large" placeholder="Ej.: Saldo de apertura, venta a crédito previa..."></td></tr>
+      </table>
+    </fieldset>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="guardarDeudaInicialCliente()">✅ Guardar Deuda</button>
+      <button class="mod-btn" onclick="cerrarDeudaInicialCliente()">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+<!-- ============== MÓDULO PRODUCTOS ============== -->
+<div class="window hidden" id="productos-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🗔</span><span class="title-text">Productos</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('productos-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="nuevoProducto()"><span class="mod-icon">📄</span> Nuevo (F2)</button>
+    <button class="mod-btn" onclick="guardarProducto()"><span class="mod-icon">💾</span> Guardar (F4)</button>
+    <button class="mod-btn" onclick="eliminarProducto()"><span class="mod-icon">❌</span> Eliminar (F6)</button>
+    <button class="mod-btn" onclick="document.getElementById('productos-search').focus()"><span class="mod-icon">🔍</span> Buscar (F3)</button>
+    <button class="mod-btn" onclick="imprimirProductos()"><span class="mod-icon">🖨️</span> Imprimir (F7)</button>
+    <button class="mod-btn" onclick="exportarProductos()"><span class="mod-icon">📤</span> Exportar</button>
+    <button class="mod-btn" onclick="exportarPDFProductos()"><span class="mod-icon">📄</span> Exportar PDF</button>
+    <button class="mod-btn" onclick="compartirProductos()"><span class="mod-icon">🤝</span> Compartir</button>
+    <button class="mod-btn" onclick="closeWindow('productos-window')"><span class="mod-icon">🚪</span> Salir (F12)</button>
+  </div>
+  <div class="module-search">
+    <span>Buscar por:</span>
+    <select id="productos-campo"><option>Código</option><option>Descripción</option><option>Código de Barra</option></select>
+    <span>Criterio:</span>
+    <input type="text" id="productos-search" class="input-medium" oninput="buscarProducto()">
+    <button class="btn-mini" onclick="document.getElementById('productos-search').value='';buscarProducto()">✕</button>
+  </div>
+  <div class="module-content">
+    <div class="productos-grid">
+      <table class="grid" id="productos-list">
+        <thead><tr><th>Código</th><th>Descripción</th></tr></thead>
+        <tbody id="productos-body"></tbody>
+      </table>
+      <div class="producto-tabs" data-tabs>
+        <div class="tab-row">
+          <span class="tab-title tab-active" data-tab-target="prod-panel-datos">Datos Generales</span>
+          <span class="tab" data-tab-target="prod-panel-precios">Precios</span>
+          <span class="tab" data-tab-target="prod-panel-exist">Existencias</span>
+          <span class="tab" data-tab-target="prod-panel-otros">Otros</span>
+        </div>
+        <div id="prod-panel-datos" data-panel>
+          <table class="form-table">
+            <tr><td><label>Código:</label></td><td><input type="text" id="prod-cod" class="input-small"></td>
+                <td><label>Código de Barra:</label></td><td><input type="text" id="prod-barra" class="input-medium"></td></tr>
+            <tr><td><label>Descripción:</label></td><td colspan="3"><input type="text" id="prod-desc" class="input-wide"></td></tr>
+            <tr><td><label>Categoría:</label></td><td>
+                  <span class="managed-field">
+                    <select id="prod-cat" class="input-medium"></select>
+                    <button class="btn-mini" title="Agregar categoría" onclick="agregarOpcionCampo('prod-cat','categorias')">➕</button>
+                    <button class="btn-mini" title="Eliminar categoría seleccionada" onclick="eliminarOpcionCampo('prod-cat','categorias')">🗑️</button>
+                  </span>
+                </td>
+                <td><label>Subcategoría:</label></td><td>
+                  <span class="managed-field">
+                    <select id="prod-subcat" class="input-medium"></select>
+                    <button class="btn-mini" title="Agregar subcategoría" onclick="agregarOpcionCampo('prod-subcat','subcategorias')">➕</button>
+                    <button class="btn-mini" title="Eliminar subcategoría seleccionada" onclick="eliminarOpcionCampo('prod-subcat','subcategorias')">🗑️</button>
+                  </span>
+                </td></tr>
+            <tr><td><label>Marca:</label></td><td>
+                  <span class="managed-field">
+                    <select id="prod-marca" class="input-medium"></select>
+                    <button class="btn-mini" title="Agregar marca" onclick="agregarOpcionCampo('prod-marca','marcas')">➕</button>
+                    <button class="btn-mini" title="Eliminar marca seleccionada" onclick="eliminarOpcionCampo('prod-marca','marcas')">🗑️</button>
+                  </span>
+                </td>
+                <td><label>N° Parte Fabricante:</label></td><td><input type="text" id="prod-nro-parte" class="input-medium" title="Número de parte del fabricante"></td></tr>
+            <tr><td><label>Presentación:</label></td><td>
+                  <span class="managed-field">
+                    <select id="prod-presentacion" class="input-medium"></select>
+                    <button class="btn-mini" title="Agregar presentación" onclick="agregarOpcionCampo('prod-presentacion','presentaciones')">➕</button>
+                    <button class="btn-mini" title="Eliminar presentación seleccionada" onclick="eliminarOpcionCampo('prod-presentacion','presentaciones')">🗑️</button>
+                  </span>
+                </td>
+                <td><label>Unidad de Medida:</label></td><td>
+                  <span class="managed-field">
+                    <select id="prod-unidad" class="input-medium"></select>
+                    <button class="btn-mini" title="Agregar unidad" onclick="agregarOpcionCampo('prod-unidad','unidades')">➕</button>
+                    <button class="btn-mini" title="Eliminar unidad seleccionada" onclick="eliminarOpcionCampo('prod-unidad','unidades')">🗑️</button>
+                  </span>
+                </td></tr>
+            <tr><td><label>Compatibilidad:</label></td><td colspan="3"><input type="text" id="prod-compat" class="input-wide" placeholder="Ej: Corolla 96/99 - Machito 2000/2015"></td></tr>
+          </table>
+        </div>
+        <div id="prod-panel-precios" data-panel class="hidden-panel">
+          <div class="pricing-hint">Fórmula de ganancia: <b>Método Markup sobre venta</b>. Tasa BCV: <b id="prod-tasa-hint"></b> Bs/USD — Los campos se recalculan entre sí (tridireccional).</div>
+          <table class="form-table">
+            <tr><td><label>Costo (USD):</label></td><td><input type="text" inputmode="decimal" id="prod-costo" class="input-medium" oninput="recalcPrecio('costo')"></td>
+                <td><label>Margen de Ganancia (%):</label></td><td><input type="text" inputmode="decimal" id="prod-margen" class="input-medium" oninput="recalcPrecio('margen')"></td></tr>
+            <tr><td><label>Precio de Venta (USD):</label></td><td><input type="text" inputmode="decimal" id="prod-precio-usd" class="input-medium" oninput="recalcPrecio('usd')"></td>
+                <td><label>Precio de Venta (Bs.):</label></td><td><input type="text" inputmode="decimal" id="prod-precio-bs" class="input-medium" oninput="recalcPrecio('bs')"></td></tr>
+          </table>
+          <div class="pricing-result" id="prod-precio-result"></div>
+          <div class="pricing-hint" style="margin-top:8px">Precios especiales (tridireccional: costo / margen / PVP):</div>
+          <table class="form-table">
+            <tr><td><label>Mayor (USD):</label></td><td><input type="text" inputmode="decimal" id="prod-mayor-usd" class="input-medium" oninput="recalcPrecioTier('mayor','usd')"></td>
+                <td><label>Mayor (Bs.):</label></td><td><input type="text" inputmode="decimal" id="prod-mayor-bs" class="input-medium" oninput="recalcPrecioTier('mayor','bs')"></td>
+                <td><label>Margen Mayor (%):</label></td><td><input type="text" inputmode="decimal" id="prod-mayor-margen" class="input-small" oninput="recalcPrecioTier('mayor','margen')"></td></tr>
+            <tr><td><label>Oferta (USD):</label></td><td><input type="text" inputmode="decimal" id="prod-oferta-usd" class="input-medium" oninput="recalcPrecioTier('oferta','usd')"></td>
+                <td><label>Oferta (Bs.):</label></td><td><input type="text" inputmode="decimal" id="prod-oferta-bs" class="input-medium" oninput="recalcPrecioTier('oferta','bs')"></td>
+                <td><label>Margen Oferta (%):</label></td><td><input type="text" inputmode="decimal" id="prod-oferta-margen" class="input-small" oninput="recalcPrecioTier('oferta','margen')"></td></tr>
+            <tr><td><label>Promoción (USD):</label></td><td><input type="text" inputmode="decimal" id="prod-promo-usd" class="input-medium" oninput="recalcPrecioTier('promo','usd')"></td>
+                <td><label>Promoción (Bs.):</label></td><td><input type="text" inputmode="decimal" id="prod-promo-bs" class="input-medium" oninput="recalcPrecioTier('promo','bs')"></td>
+                <td><label>Margen Promo (%):</label></td><td><input type="text" inputmode="decimal" id="prod-promo-margen" class="input-small" oninput="recalcPrecioTier('promo','margen')"></td></tr>
+          </table>
+        </div>
+        <div id="prod-panel-exist" data-panel class="hidden-panel">
+          <table class="form-table">
+            <tr><td><label>Stock Inicial:</label></td><td><input type="text" inputmode="decimal" id="prod-stock-ini" class="input-small" title="Se registra como primer movimiento en el kardex. No es modificable después de crear el producto."></td>
+                <td><label>Existencia:</label></td><td id="prod-exist" class="num-label">0,00</td></tr>
+            <tr><td><label>Reservada:</label></td><td id="prod-reserv" class="num-label">0,00</td>
+                <td><label>Disponible:</label></td><td id="prod-disp" class="num-label">0,00</td></tr>
+            <tr><td><label>Mínimo:</label></td><td><input type="text" inputmode="decimal" id="prod-min" class="input-small" value="0"></td></tr>
+          </table>
+        </div>
+        <div id="prod-panel-otros" data-panel class="hidden-panel">
+          <table class="form-table">
+            <tr><td><label>Ubicación en Bodega:</label></td><td><input type="text" id="prod-ubic" class="input-medium"></td>
+                <td colspan="2"><label><input type="checkbox" id="prod-inactivo"> Producto Inactivo</label></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MÓDULO SERVICIOS ============== -->
+<div class="window hidden" id="servicios-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🔧</span><span class="title-text">Servicios</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('servicios-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="nuevoServicio()"><span class="mod-icon">📄</span> Nuevo (F2)</button>
+    <button class="mod-btn" onclick="guardarServicio()"><span class="mod-icon">💾</span> Guardar (F4)</button>
+    <button class="mod-btn" onclick="eliminarServicio()"><span class="mod-icon">❌</span> Eliminar (F6)</button>
+    <button class="mod-btn" onclick="document.getElementById('servicios-search').focus()"><span class="mod-icon">🔍</span> Buscar (F3)</button>
+    <button class="mod-btn" onclick="imprimirServicios()"><span class="mod-icon">🖨️</span> Imprimir (F7)</button>
+    <button class="mod-btn" onclick="exportarServicios()"><span class="mod-icon">📤</span> Exportar</button>
+    <button class="mod-btn" onclick="exportarPDFServicios()"><span class="mod-icon">📄</span> Exportar PDF</button>
+    <button class="mod-btn" onclick="compartirServicios()"><span class="mod-icon">🤝</span> Compartir</button>
+    <button class="mod-btn" onclick="closeWindow('servicios-window')"><span class="mod-icon">🚪</span> Salir (F12)</button>
+  </div>
+  <div class="module-search">
+    <span>Criterio:</span>
+    <input type="text" id="servicios-search" class="input-medium" oninput="buscarServicio()">
+    <button class="btn-mini" onclick="document.getElementById('servicios-search').value='';buscarServicio()">✕</button>
+  </div>
+  <div class="module-content">
+    <div class="servicios-grid">
+      <table class="grid" id="servicios-list">
+        <thead><tr><th>Código</th><th>Descripción</th></tr></thead>
+        <tbody id="servicios-body"></tbody>
+      </table>
+      <div class="servicio-tabs" data-tabs>
+        <div class="tab-row">
+          <span class="tab-title tab-active" data-tab-target="sv-panel-datos">Datos Generales</span>
+          <span class="tab" data-tab-target="sv-panel-precios">Precios</span>
+        </div>
+        <div id="sv-panel-datos" data-panel>
+          <table class="form-table">
+            <tr><td><label>Código:</label></td><td><input type="text" id="sv-cod" class="input-small"></td>
+                <td><label>Tipo de Servicio:</label></td><td><select id="sv-tipo"><option>Regular</option><option>Promoción</option><option>Combo</option><option>Oferta</option></select></td></tr>
+            <tr><td><label>Nombre del Servicio:</label></td><td colspan="3"><input type="text" id="sv-desc" class="input-wide"></td></tr>
+            <tr><td><label>Subcategoría:</label></td><td><input type="text" id="sv-subcat" class="input-medium"></td>
+                <td><label>Duración Est. (horas):</label></td><td><input type="text" inputmode="decimal" id="sv-duracion" class="input-small"></td></tr>
+            <tr><td><label>Costo Mano de Obra (USD):</label></td><td><input type="text" inputmode="decimal" id="sv-manoobra" class="input-medium"></td>
+                <td><label>Stock Mínimo:</label></td><td><input type="text" inputmode="decimal" id="sv-min" class="input-small"></td></tr>
+            <tr><td colspan="4"><label><input type="checkbox" id="sv-inactivo"> Servicio Inactivo</label></td></tr>
+          </table>
+        </div>
+        <div id="sv-panel-precios" data-panel class="hidden-panel">
+          <div class="pricing-hint">Tasa BCV: <b id="sv-tasa-hint"></b> Bs/USD — El costo se calcula como mano de obra. Los campos de precio se recalculan entre sí.</div>
+          <table class="form-table">
+            <tr><td><label>Margen de Ganancia (%):</label></td><td><input type="text" inputmode="decimal" id="sv-margen" class="input-medium" oninput="recalcularServicioPrecio('margen')"></td>
+                <td><label>Precio de Venta (USD):</label></td><td><input type="text" inputmode="decimal" id="sv-precio-usd" class="input-medium" oninput="recalcularServicioPrecio('usd')"></td></tr>
+            <tr><td><label>Precio de Venta (Bs.):</label></td><td><input type="text" inputmode="decimal" id="sv-precio-bs" class="input-medium" oninput="recalcularServicioPrecio('bs')"></td></tr>
+          </table>
+          <div class="pricing-result" id="sv-precio-result"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MÓDULO COTIZACIONES ============== -->
+<div class="window hidden" id="cotizaciones-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🗔</span><span class="title-text">Cotizaciones</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('cotizaciones-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="nuevaCotizacion()"><span class="mod-icon">📄</span> Nuevo (F2)</button>
+    <button class="mod-btn" onclick="editarCotizacion()"><span class="mod-icon">✏️</span> Editar (F4)</button>
+    <button class="mod-btn" onclick="eliminarCotizacion()"><span class="mod-icon">❌</span> Eliminar (F6)</button>
+    <button class="mod-btn" onclick="document.getElementById('coti-search').focus()"><span class="mod-icon">🔍</span> Buscar (F3)</button>
+    <button class="mod-btn" onclick="imprimirCotizacion()"><span class="mod-icon">🖨️</span> Imprimir (F7)</button>
+    <button class="mod-btn" onclick="exportarPDFCotizacion()"><span class="mod-icon">📄</span> Exportar PDF</button>
+    <button class="mod-btn" onclick="compartirCotizacion()"><span class="mod-icon">🤝</span> Compartir</button>
+    <button class="mod-btn" onclick="convertirCotizacionVenta()"><span class="mod-icon">🔄</span> Convertir a Venta</button>
+    <button class="mod-btn" onclick="closeWindow('cotizaciones-window')"><span class="mod-icon">🚪</span> Salir (F12)</button>
+  </div>
+  <div class="cotiz-filters">
+    <span>Buscar:</span><input type="text" id="coti-search" class="input-medium" oninput="filtrarCotizaciones()" placeholder="N° o cliente...">
+    <span>Estado:</span><select id="coti-estado" onchange="filtrarCotizaciones()"><option>Todos</option><option>Pendiente</option><option>Aceptada</option><option>Vencida</option></select>
+  </div>
+  <table class="grid full-grid">
+    <thead>
+      <tr><th>N° Cotización</th><th>Fecha</th><th>Cliente</th><th>Total</th><th>Estado</th></tr>
+    </thead>
+    <tbody id="cotizaciones-body"></tbody>
+  </table>
+  <div class="cotiz-detail">
+    <fieldset class="panel">
+      <legend>Resumen de la Cotización</legend>
+      <table class="grid" id="cotiz-detail-grid">
+        <thead><tr><th>Código</th><th>Descripción</th><th>Cantidad</th><th>Precio Unit.</th><th>Total</th></tr></thead>
+        <tbody id="cotiz-detail-body"></tbody>
+      </table>
+    </fieldset>
+    <div class="cotiz-totals">
+      <div>Sub-Total: <b id="cot-sub">0,00</b></div>
+      <div>Descuento: <b id="cot-desc">0,00</b></div>
+      <div id="cot-iva-label">I.V.A.: <b id="cot-iva">0,00</b></div>
+      <div class="cotiz-total-row">TOTAL: <b id="cot-total">0,00</b></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MÓDULO DEVOLUCIONES ============== -->
+<div class="window hidden" id="devoluciones-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🗔</span><span class="title-text">Devoluciones sobre Factura</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('devoluciones-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="nuevaDevolucion()"><span class="mod-icon">📄</span> Nuevo (F2)</button>
+    <button class="mod-btn" onclick="registrarDevolucion()" id="dev-registrar-btn"><span class="mod-icon">💾</span> Registrar (F4)</button>
+    <button class="mod-btn" onclick="anularDevolucion()"><span class="mod-icon">❌</span> Anular (F6)</button>
+    <button class="mod-btn" onclick="imprimirDevolucion()"><span class="mod-icon">🖨️</span> Imprimir (F7)</button>
+    <button class="mod-btn" onclick="closeWindow('devoluciones-window')"><span class="mod-icon">🚪</span> Salir (F12)</button>
+  </div>
+  <div class="dev-content">
+    <div class="dev-form-col">
+      <fieldset class="panel">
+        <legend>1. Seleccionar Venta / Factura</legend>
+        <div class="dev-fact-search">
+          <input type="text" id="dev-fact-search" placeholder="Buscar por N° factura o cliente..." oninput="renderFacturasDev()">
+        </div>
+        <div class="dev-fact-list" id="dev-fact-list"></div>
+      </fieldset>
+      <fieldset class="panel">
+        <legend>2. Detalle de la Venta</legend>
+        <div class="dev-venta-info" id="dev-venta-info"></div>
+        <table class="grid">
+          <thead><tr><th>Código</th><th>Descripción</th><th class="r">Cant.</th><th class="r">Precio</th><th class="r">Total</th><th class="r">Devuelto</th></tr></thead>
+          <tbody id="dev-venta-lines"></tbody>
+        </table>
+        <div class="dev-historial" id="dev-historial"></div>
+      </fieldset>
+    </div>
+    <div class="dev-form-col">
+      <fieldset class="panel">
+        <legend>Datos de la Devolución</legend>
+        <table class="form-table">
+          <tr><td><label>N° Devolución:</label></td><td><input type="text" id="dev-nro" class="input-small" disabled></td></tr>
+          <tr><td><label>Fecha:</label></td><td><input type="text" id="dev-fecha" class="input-small" disabled></td></tr>
+          <tr><td><label>Factura:</label></td><td><input type="text" id="dev-factura" class="input-small" disabled></td></tr>
+          <tr><td><label>Cliente:</label></td><td><input type="text" id="dev-cliente" class="input-small" disabled></td></tr>
+          <tr><td><label>Motivo:</label></td><td><select id="dev-motivo"><option>PRODUCTO DEFECTUOSO</option><option>ERROR DE VENTA</option><option>GARANTÍA</option><option>OTRO</option></select></td></tr>
+        </table>
+      </fieldset>
+      <fieldset class="panel">
+        <legend>3. Producto a Devolver</legend>
+        <table class="form-table">
+          <tr><td><label>Producto:</label></td><td><select id="dev-prod"></select></td></tr>
+          <tr><td><label>Cantidad:</label></td><td><input type="text" inputmode="decimal" id="dev-cant" class="input-medium" value="1" onkeydown="if(event.key==='Enter'){agregarLineaDevolucion();}"></td></tr>
+        </table>
+        <button class="btn-add-cart" onclick="agregarLineaDevolucion()" id="dev-agregar-btn">🛒 Agregar a Devolución</button>
+      </fieldset>
+      <fieldset class="panel">
+        <legend>4. Detalle de la Devolución</legend>
+        <table class="grid">
+          <thead><tr><th>Código</th><th>Descripción</th><th class="r">Cant.</th><th class="r">Precio Unit.</th><th class="r">Total</th><th></th></tr></thead>
+          <tbody id="dev-body"></tbody>
+        </table>
+      </fieldset>
+      <div class="dev-totals">
+        <div>Sub-Total: <b id="dev-sub">0,00</b></div>
+        <div id="dev-iva-label">I.V.A.: <b id="dev-iva">0,00</b></div>
+        <div class="cotiz-total-row">TOTAL A DEVOLVER: <b id="dev-total">0,00</b></div>
+      </div>
+      <fieldset class="panel">
+        <legend>5. Pago de la Devolución</legend>
+        <table class="form-table">
+          <tr><td><label>Método:</label></td><td><select id="dev-pago-metodo"></select></td></tr>
+          <tr><td><label>Monto a devolver:</label></td><td><input type="text" inputmode="decimal" id="dev-pago-monto" class="input-medium" oninput="updateDevPagoHint()"></td></tr>
+        </table>
+        <div class="dev-pago-hint" id="dev-pago-hint"></div>
+      </fieldset>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MÓDULO CAJA ============== -->
+<div class="window hidden" id="caja-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🗔</span><span class="title-text">Caja (Movimiento de Caja)</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('caja-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="abrirCajaModal()"><span class="mod-icon">📂</span> Abrir Caja (F2)</button>
+    <button class="mod-btn" onclick="cierreCajaModal()"><span class="mod-icon">🔒</span> Cierre de Caja (F3)</button>
+    <button class="mod-btn" onclick="corteX()"><span class="mod-icon">🧾</span> Corte X</button>
+    <button class="mod-btn" onclick="corteZ()"><span class="mod-icon">📑</span> Corte Z</button>
+    <button class="mod-btn" data-perm="arqueo" onclick="abrirArqueo()"><span class="mod-icon">💰</span> Arqueo (F4)</button>
+    <button class="mod-btn" data-perm="movcaja" onclick="nuevoMovCaja()"><span class="mod-icon">➕</span> Nuevo Movimiento (F5)</button>
+    <button class="mod-btn" onclick="imprimirCaja()"><span class="mod-icon">🖨️</span> Imprimir (F7)</button>
+    <button class="mod-btn" onclick="closeWindow('caja-window')"><span class="mod-icon">🚪</span> Salir (F12)</button>
+  </div>
+  <div class="caja-content">
+    <div class="caja-left">
+      <fieldset class="panel">
+        <legend>Información de la Caja</legend>
+        <table class="form-table">
+          <tr><td><label>Caja:</label></td><td id="caja-nombre">CAJA 01</td></tr>
+          <tr><td><label>Fecha:</label></td><td id="caja-fecha">—</td></tr>
+          <tr><td><label>Estatus:</label></td><td><b class="open-status" id="caja-estatus">CERRADA</b></td></tr>
+          <tr><td><label>Apertura:</label></td><td id="caja-apertura">—</td></tr>
+          <tr><td><label>Cierre:</label></td><td id="caja-cierre">—</td></tr>
+          <tr><td><label>Cajero:</label></td><td id="caja-cajero">ADMIN</td></tr>
+        </table>
+      </fieldset>
+      <fieldset class="panel">
+        <legend>Movimientos de Caja</legend>
+        <table class="grid">
+          <thead><tr><th>Fecha</th><th>Hora</th><th>Tipo Movimiento</th><th>Referencia</th><th>Ing. Bs</th><th>Egr. Bs</th><th>Ing. $</th><th>Egr. $</th></tr></thead>
+          <tbody id="mov-caja-body"></tbody>
+        </table>
+      </fieldset>
+    </div>
+    <div class="caja-right">
+      <fieldset class="panel">
+        <legend>Resumen del Día</legend>
+        <table class="totales-table" id="caja-resumen-body"></table>
+      </fieldset>
+      <div class="caja-balance">
+        <div><span class="balance-label">Saldo Efectivo Bs.:</span><span class="balance-value" id="caja-balance-bs">0,00</span></div>
+        <div><span class="balance-label">Saldo Efectivo USD (físico):</span><span class="balance-value" id="caja-balance-usd">$ 0,00</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MÓDULO COMPRAS ============== -->
+<div class="window hidden" id="compras-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🗔</span><span class="title-text">Compras</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('compras-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="nuevaCompra()"><span class="mod-icon">📄</span> Nueva Compra (F2)</button>
+    <button class="mod-btn" onclick="renderCompras()"><span class="mod-icon">🗂️</span> Historial de Compras (F4)</button>
+    <button class="mod-btn" onclick="document.getElementById('compra-search').focus()"><span class="mod-icon">🔍</span> Buscar (F3)</button>
+    <button class="mod-btn" onclick="imprimirCompra()"><span class="mod-icon">🖨️</span> Imprimir (F7)</button>
+    <button class="mod-btn" onclick="exportarPDFCompra()"><span class="mod-icon">📄</span> Exportar PDF</button>
+    <button class="mod-btn" onclick="compartirCompra()"><span class="mod-icon">🤝</span> Compartir</button>
+    <button class="mod-btn" onclick="closeWindow('compras-window')"><span class="mod-icon">🚪</span> Salir (F12)</button>
+  </div>
+  <div class="cotiz-filters">
+    <span>Buscar:</span><input type="text" id="compra-search" class="input-medium" oninput="filtrarCompras()" placeholder="N° o proveedor...">
+    <span>Estatus:</span><select id="compra-estado" onchange="filtrarCompras()"><option>Todos</option><option>Pendiente</option><option>Recibida</option></select>
+  </div>
+  <table class="grid full-grid">
+    <thead>
+      <tr><th>N° Compra</th><th>Nro. Factura</th><th>Fecha</th><th>Proveedor</th><th>Total</th><th>Tipo</th><th>Pagado</th><th>Pendiente</th><th>Estatus</th></tr>
+    </thead>
+    <tbody id="compras-body"></tbody>
+  </table>
+  <div class="compras-detail">
+    <fieldset class="panel">
+      <legend>Detalle de la Compra</legend>
+      <div id="compra-detail-info" class="compra-detail-info"></div>
+      <table class="grid" id="compras-detail-grid">
+        <thead><tr><th>Código</th><th>Descripción</th><th>Cantidad</th><th>Costo Unit.</th><th>Exento IVA</th><th>Subtotal</th><th>I.V.A.</th><th>Total</th></tr></thead>
+        <tbody id="compras-detail-body"></tbody>
+      </table>
+    </fieldset>
+    <div class="cotiz-totals">
+      <div>Sub-Total: <b id="comp-sub">0,00</b></div>
+      <div>I.V.A.: <b id="comp-iva">0,00</b></div>
+      <div class="cotiz-total-row">TOTAL: <b id="comp-total">0,00</b></div>
+      <div>Total Pagado: <b id="comp-pagado">0,00</b></div>
+      <div>Pendiente (Crédito): <b id="comp-pendiente">0,00</b></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MÓDULO INVENTARIO ============== -->
+<div class="window hidden" id="inventario-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🗔</span><span class="title-text">Inventario (Existencias)</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('inventario-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="document.getElementById('inv-search').focus()"><span class="mod-icon">🔍</span> Buscar (F3)</button>
+    <button class="mod-btn" onclick="abrirAjuste()"><span class="mod-icon">📦</span> Ajuste de Inventario (F4)</button>
+    <button class="mod-btn" onclick="abrirKardex()"><span class="mod-icon">🗂️</span> Kardex (F5)</button>
+    <button class="mod-btn" onclick="imprimirInventario()"><span class="mod-icon">🖨️</span> Imprimir (F7)</button>
+    <button class="mod-btn" onclick="exportarInventario()"><span class="mod-icon">📤</span> Exportar</button>
+    <button class="mod-btn" onclick="exportarPDFInventario()"><span class="mod-icon">📄</span> Exportar PDF</button>
+    <button class="mod-btn" onclick="compartirInventario()"><span class="mod-icon">🤝</span> Compartir</button>
+    <button class="mod-btn" onclick="closeWindow('inventario-window')"><span class="mod-icon">🚪</span> Salir (F12)</button>
+  </div>
+  <div class="inv-filters">
+    <span>Categoría:</span><select id="inv-cat" onchange="filtrarInventario()"><option>Todas</option></select>
+    <span>Buscar:</span><input type="text" id="inv-search" class="input-medium" oninput="filtrarInventario()" placeholder="Código o descripción...">
+    <label><input type="checkbox" id="inv-solo-baja" onchange="filtrarInventario()"> Mostrar solo con existencia baja</label>
+  </div>
+  <table class="grid full-grid">
+    <thead>
+      <tr><th>Código</th><th>Descripción</th><th>Existencia</th><th>Reservada</th><th>Disponible</th><th>Mínimo</th><th>Costo CPP (USD)</th><th>Precio Venta (USD)</th><th>Precio Venta (Bs.)</th></tr>
+    </thead>
+    <tbody id="inventario-body"></tbody>
+  </table>
+  <div class="inv-summary">
+    <div class="inv-summary-title">Inventario General</div>
+    <div>Productos mostrados: <b id="inv-total-prod">0</b></div>
+    <div>Valor Total de Inventario (Precio Costo CPP): <b id="inv-total-costo">$ 0,00</b> <span class="usd-sub" id="inv-total-costo-bs">(Bs. 0,00)</span></div>
+    <div>Total Precio de Venta: <b id="inv-total-venta">$ 0,00</b> <span class="usd-sub" id="inv-total-venta-bs">(Bs. 0,00)</span></div>
+  </div>
+  <div class="inv-legend">
+    <span><span class="legend-box red"></span> Sin Stock</span>
+    <span><span class="legend-box yellow"></span> Stock Bajo</span>
+    <span><span class="legend-box green"></span> Stock OK</span>
+  </div>
+</div>
+
+<!-- ============== MÓDULO REPORTES ============== -->
+<div class="window hidden" id="reportes-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🗔</span><span class="title-text">Reportes</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('reportes-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="verReporte()"><span class="mod-icon">👁️</span> Vista Previa (F7)</button>
+    <button class="mod-btn" onclick="imprimirReporte()"><span class="mod-icon">🖨️</span> Imprimir (F8)</button>
+    <button class="mod-btn" onclick="exportarReporte()"><span class="mod-icon">📤</span> Exportar</button>
+    <button class="mod-btn" onclick="exportarPDFReporte()"><span class="mod-icon">📄</span> Exportar PDF</button>
+    <button class="mod-btn" onclick="compartirReporte()"><span class="mod-icon">🤝</span> Compartir</button>
+    <button class="mod-btn" onclick="closeWindow('reportes-window')"><span class="mod-icon">🚪</span> Salir (F12)</button>
+  </div>
+  <div class="reportes-content">
+    <div class="rep-col">
+      <div class="rep-col-title">Categoría de Reporte</div>
+      <ul class="rep-list" id="rep-cat"></ul>
+    </div>
+    <div class="rep-col">
+      <div class="rep-col-title">Reporte</div>
+      <ul class="rep-list" id="rep-list"></ul>
+    </div>
+    <div class="rep-col">
+      <div class="rep-col-title">Filtros del Reporte</div>
+      <div class="rep-filters">
+        <label>Desde:</label><input type="text" id="rep-desde" class="input-small">
+        <label>Hasta:</label><input type="text" id="rep-hasta" class="input-small">
+        <label>Caja:</label><select id="rep-caja"></select>
+        <label>Forma de Pago:</label><select id="rep-forma"><option>Todas</option><option>Efectivo Bs.</option><option>Efectivo USD</option><option>Pagomóvil</option><option>Biopago</option><option>Transferencia</option><option>Zelle</option><option>Tarjeta/Punto</option><option>Crédito</option></select>
+      </div>
+    </div>
+  </div>
+  <fieldset class="panel rep-desc">
+    <legend>Descripción</legend>
+    <p id="rep-descripcion">Seleccione un reporte y presione Vista Previa.</p>
+  </fieldset>
+</div>
+
+<!-- ============== MÓDULO CUENTAS POR COBRAR ============== -->
+<div class="window hidden" id="cxc-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">💳</span><span class="title-text">Cuentas por Cobrar</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('cxc-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="abonarCxC()"><span class="mod-icon">💰</span> Abonar (F2)</button>
+    <button class="mod-btn" onclick="imprimirCxC()"><span class="mod-icon">🖨️</span> Imprimir (F7)</button>
+    <button class="mod-btn" onclick="exportarCxC()"><span class="mod-icon">📤</span> Exportar</button>
+    <button class="mod-btn" onclick="exportarPDFCxC()"><span class="mod-icon">📄</span> Exportar PDF</button>
+    <button class="mod-btn" onclick="compartirCxC()"><span class="mod-icon">🤝</span> Compartir</button>
+    <button class="mod-btn" onclick="closeWindow('cxc-window')"><span class="mod-icon">🚪</span> Salir (F12)</button>
+  </div>
+  <div class="cotiz-filters">
+    <span>Buscar:</span><input type="text" id="cxc-search" class="input-medium" oninput="filtrarCxC()" placeholder="Factura, cliente o RIF...">
+    <span>Estado:</span><select id="cxc-estado" onchange="filtrarCxC()"><option>Todos</option><option>Pendiente</option><option>Parcial</option><option>Pagada</option><option>Vencida</option></select>
+    <label><input type="checkbox" id="cxc-vencidas" onchange="filtrarCxC()"> Solo vencidas</label>
+    <label class="filtro-check"><input type="checkbox" id="cxc-iniciales" onchange="filtrarCxC()"> Solo Iniciales</label>
+    <span>Vista:</span><select id="cxc-vista" onchange="renderCxC()"><option value="detalle">Detalle por Cuenta</option><option value="resumen">Resumen por Cliente</option></select>
+  </div>
+  <div class="credit-sum">
+    <span>Total Cartera: <b id="cxc-sum-cartera">$ 0,00</b></span>
+    <span>Vencidas: <b id="cxc-sum-vencidas">$ 0,00</b></span>
+    <span>Cobrado Hoy: <b id="cxc-sum-cobrado">$ 0,00</b></span>
+  </div>
+  <table class="grid full-grid">
+    <thead>
+      <tr><th>N° Factura</th><th>Fecha</th><th>Vencimiento</th><th>Cliente</th><th>Total</th><th>Pagado</th><th>Saldo</th><th>Estado</th></tr>
+    </thead>
+    <tbody id="cxc-body"></tbody>
+  </table>
+  <div class="credit-detail">
+    <fieldset class="panel">
+      <legend>Detalle de la Cuenta</legend>
+      <div class="credit-info" id="cxc-fact-info">—</div>
+      <table class="grid">
+        <thead><tr><th>Código</th><th>Descripción</th><th>Cantidad</th><th>Precio</th><th>Total</th></tr></thead>
+        <tbody id="cxc-items-body"></tbody>
+      </table>
+      <div class="credit-total">Total de la Factura: <b id="cxc-items-total">0,00</b></div>
+    </fieldset>
+    <fieldset class="panel">
+      <legend id="cxc-abonos-title">Historial de Cobros</legend>
+      <div class="credit-info" id="cxc-cli-line">—</div>
+      <table class="grid">
+        <thead><tr><th>N° Abono</th><th>Fecha</th><th>Hora</th><th>Monto</th><th>Forma</th><th>Saldo Rest.</th></tr></thead>
+        <tbody id="cxc-abonos-body"></tbody>
+      </table>
+    </fieldset>
+  </div>
+</div>
+
+<!-- ============== REGISTRAR ABONO (CxC) ============== -->
+<div class="window hidden" id="cxc-abono-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">💰</span><span class="title-text">Registrar Abono (CxC)</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="cerrarAbonoCxC()">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Abono a la Deuda del Cliente</legend>
+      <table class="form-table">
+        <tr><td><label>Cliente:</label></td><td><input type="text" id="cxc-ab-cliente" class="input-large" readonly></td></tr>
+        <tr><td><label>RIF:</label></td><td><input type="text" id="cxc-ab-rif" class="input-medium" readonly></td></tr>
+        <tr><td><label>Deuda actual:</label></td><td><b id="cxc-ab-deuda">$ 0,00</b></td></tr>
+        <tr><td><label>Monto a abonar:</label></td><td><input type="text" id="cxc-ab-monto" class="input-medium" oninput="actualizarEquivAbono()"><div class="pago-usd" id="cxc-ab-monto-usd"></div></td></tr>
+        <tr><td><label>Forma de Pago:</label></td><td><select id="cxc-ab-forma" onchange="actualizarEquivAbono()"></select></td></tr>
+        <tr><td><label>Referencia:</label></td><td><input type="text" id="cxc-ab-ref" class="input-medium" placeholder="N° de pago/transferencia..."></td></tr>
+      </table>
+    </fieldset>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="guardarAbonoCxC()">✅ Registrar Abono</button>
+      <button class="mod-btn" onclick="cerrarAbonoCxC()">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MÓDULO CUENTAS POR PAGAR ============== -->
+<div class="window hidden" id="cxp-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🧾</span><span class="title-text">Cuentas por Pagar</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('cxp-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="abrirPagoCxP()"><span class="mod-icon">💸</span> Registrar Pago (F2)</button>
+    <button class="mod-btn" onclick="imprimirCxP()"><span class="mod-icon">🖨️</span> Imprimir (F7)</button>
+    <button class="mod-btn" onclick="exportarCxP()"><span class="mod-icon">📤</span> Exportar</button>
+    <button class="mod-btn" onclick="exportarPDFCxP()"><span class="mod-icon">📄</span> Exportar PDF</button>
+    <button class="mod-btn" onclick="compartirCxP()"><span class="mod-icon">🤝</span> Compartir</button>
+    <button class="mod-btn" onclick="closeWindow('cxp-window')"><span class="mod-icon">🚪</span> Salir (F12)</button>
+  </div>
+  <div class="cotiz-filters">
+    <span>Buscar:</span><input type="text" id="cxp-search" class="input-medium" oninput="filtrarCxP()" placeholder="Compra o proveedor...">
+    <span>Estado:</span><select id="cxp-estado" onchange="filtrarCxP()"><option>Todos</option><option>Pendiente</option><option>Parcial</option><option>Pagada</option><option>Vencida</option></select>
+    <label class="filtro-check"><input type="checkbox" id="cxp-iniciales" onchange="filtrarCxP()"> Solo Iniciales</label>
+  </div>
+  <div class="credit-sum">
+    <span>Total por Pagar: <b id="cxp-sum-total">$ 0,00</b></span>
+    <span>Vencidas: <b id="cxp-sum-vencidas">$ 0,00</b></span>
+    <span>Pagado Hoy: <b id="cxp-sum-pagado">$ 0,00</b></span>
+  </div>
+  <table class="grid full-grid">
+    <thead>
+      <tr><th>N° Compra</th><th>Fecha</th><th>Proveedor</th><th>Total</th><th>Pagado</th><th>Saldo</th><th>Estado</th></tr>
+    </thead>
+    <tbody id="cxp-body"></tbody>
+  </table>
+  <div class="credit-detail">
+    <fieldset class="panel">
+      <legend>Detalle de la Compra</legend>
+      <div class="credit-info" id="cxp-comp-info">—</div>
+      <table class="grid">
+        <thead><tr><th>Código</th><th>Descripción</th><th>Cantidad</th><th>Costo</th><th>Total</th></tr></thead>
+        <tbody id="cxp-items-body"></tbody>
+      </table>
+      <div class="credit-total">Total de la Compra: <b id="cxp-comp-total">0,00</b></div>
+    </fieldset>
+    <fieldset class="panel">
+      <legend id="cxp-pagos-title">Historial de Pagos</legend>
+      <table class="grid">
+        <thead><tr><th>N° Pago</th><th>Fecha</th><th>Forma</th><th>Referencia</th><th>Monto</th></tr></thead>
+        <tbody id="cxp-pagos-body"></tbody>
+      </table>
+    </fieldset>
+  </div>
+</div>
+
+<!-- ============== REGISTRAR PAGO (CxP) ============== -->
+<div class="window hidden" id="cxp-pago-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">💸</span><span class="title-text">Registrar Pago (CxP)</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="cerrarPagoCxP()">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Pago a Proveedor</legend>
+      <table class="form-table">
+        <tr><td><label>Proveedor:</label></td><td><input type="text" id="cxp-pg-proveedor" class="input-large" readonly></td></tr>
+        <tr><td><label>Compra / Cuenta:</label></td><td><input type="text" id="cxp-pg-cuenta" class="input-small" readonly></td></tr>
+        <tr><td><label>Saldo de la cuenta:</label></td><td><b id="cxp-pg-saldo">$ 0,00</b></td></tr>
+        <tr><td><label>Monto a pagar:</label></td><td><input type="text" id="cxp-pg-monto" class="input-medium" oninput="actualizarEquivPagoCxP()"><div class="pago-usd" id="cxp-pg-monto-usd"></div></td></tr>
+        <tr><td><label>Fecha:</label></td><td><input type="text" id="cxp-pg-fecha" class="input-small"></td></tr>
+        <tr><td><label>Forma de Pago:</label></td><td><select id="cxp-pg-forma" onchange="actualizarEquivPagoCxP()"></select></td></tr>
+        <tr><td><label>Referencia:</label></td><td><input type="text" id="cxp-pg-ref" class="input-medium" placeholder="N° de cheque/transferencia..."></td></tr>
+        <tr><td><label>Observaciones:</label></td><td><input type="text" id="cxp-pg-obs" class="input-large"></td></tr>
+      </table>
+    </fieldset>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="guardarPagoCxP()">✅ Registrar Pago</button>
+      <button class="mod-btn" onclick="cerrarPagoCxP()">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== BUSCAR PRODUCTO ============== -->
+<div class="window hidden" id="buscar-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🔍</span><span class="title-text">Buscar Producto</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('buscar-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-search">
+    <span>Buscar:</span>
+    <input type="text" id="buscar-input" class="input-wide" placeholder="Código, código de barras, descripción o palabras clave..." oninput="renderProductSearch(this.value)">
+    <button class="btn-mini" title="Limpiar" onclick="document.getElementById('buscar-input').value='';renderProductSearch('')">✕</button>
+  </div>
+  <div class="module-content">
+    <table class="grid full-grid">
+      <thead>
+        <tr><th>Código</th><th>Descripción</th><th>Categoría</th><th>Existencia</th><th>Precio (Bs. / USD)</th><th></th></tr>
+      </thead>
+      <tbody id="buscar-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============== VENTANA DE PAGO ============== -->
+<div class="window hidden" id="pago-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">💵</span><span class="title-text">Calculadora de Pago</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('pago-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <div class="pago-head">
+      <div><span class="pago-label" id="pago-titulo">TOTAL A PAGAR:</span><span class="pago-total" id="pago-total">0,00</span> <span class="pago-sub">Bs.</span> <span class="pago-usd" id="pago-total-usd">(0,00 $)</span></div>
+      <div><span class="pago-label">Tasa BCV:</span><span id="pago-tasa"></span> Bs/USD</div>
+    </div>
+
+    <div class="pago-calc-row">
+      <label>Método:</label>
+      <select id="pago-metodo" class="input-medium"></select>
+      <label>Monto:</label>
+      <input type="text" inputmode="decimal" id="pago-monto" class="input-medium" placeholder="0,00" onkeydown="if(event.key==='Enter'){event.preventDefault();agregarPago();}" oninput="actualizarEquivMonto()">
+      <span class="pago-usd" id="pago-monto-usd">0,00 $</span>
+      <button class="mod-btn" onclick="agregarPago()">➕ Agregar</button>
+      <button class="mod-btn" id="pago-credito-btn" onclick="agregarPagoCredito()" disabled>📃 Crédito</button>
+    </div>
+
+    <table class="grid full-grid">
+      <thead>
+        <tr><th>Método</th><th>Moneda</th><th>Monto</th><th>Equiv. Bs.</th><th></th></tr>
+      </thead>
+      <tbody id="pago-body"></tbody>
+    </table>
+    <div class="pago-summary">
+      <div>Métodos usados: <b id="pago-usados">—</b></div>
+      <div>Asignado (Bs.): <b id="pago-asignado">0,00</b></div>
+      <div>Faltante (Bs.): <b id="pago-faltante" class="pago-faltante">0,00</b></div>
+      <div>Vuelto (Bs.): <b id="pago-vuelto">0,00</b></div>
+    </div>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="llenarPagoBs()">💰 Pago Exacto (Bs.)</button>
+      <button class="mod-btn" onclick="llenarPagoUsd()">💲 Pago Exacto (USD)</button>
+      <button class="mod-btn" onclick="rellenarPagoFaltante()" title="Autorellena el monto con la cantidad exacta que falta para cubrir la venta">🧮 Pago Faltante</button>
+      <button class="mod-btn" onclick="abrirQuieroPagar()" title="Calcula el equivalente en Bs./USD del monto que el cliente desea pagar">🖐 Quiero Pagar</button>
+      <button class="mod-btn pago-confirmar" id="pago-confirmar" onclick="confirmPago()">✅ Finalizar Venta</button>
+      <button class="mod-btn" onclick="closeWindow('pago-window')">✖ Cancelar (Esc)</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== QUIERO PAGAR (calculadora USD / Bs.) ============== -->
+<div class="window hidden" id="quiero-pagar-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🖐</span><span class="title-text">Quiero Pagar — Calculadora</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('quiero-pagar-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <div class="qp-hint">Ingrese el monto que el cliente desea pagar y vea su equivalente al cambio.</div>
+    <div class="qp-field qp-metodo-field">
+      <label>Método de pago a usar:</label>
+      <select id="qp-metodo" class="qp-input"></select>
+    </div>
+    <div class="qp-faltante" id="qp-faltante"></div>
+    <div class="qp-grid">
+      <div class="qp-field">
+        <label>Monto en USD ($):</label>
+        <input type="text" inputmode="decimal" id="qp-usd" class="qp-input" placeholder="0,00" oninput="calcularQuieroPagar('usd')">
+      </div>
+      <div class="qp-field">
+        <label>Monto en Bs.:</label>
+        <input type="text" inputmode="decimal" id="qp-bs" class="qp-input" placeholder="0,00" oninput="calcularQuieroPagar('bs')">
+      </div>
+    </div>
+    <div class="qp-result">
+      <div class="qp-equiv-label" id="qp-equiv-label">Ingrese el monto que el cliente desea pagar</div>
+      <div class="qp-equiv-big" id="qp-equiv-big">$ 0,00</div>
+      <div class="qp-equiv-hint" id="qp-equiv-hint"></div>
+    </div>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="usarQuieroPagar()">✅ Usar este monto</button>
+      <button class="mod-btn" onclick="closeWindow('quiero-pagar-window')">✖ Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== APERTURA DE CAJA ============== -->
+<div class="window hidden" id="apertura-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">📂</span><span class="title-text">Apertura de Caja</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('apertura-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Fondos Iniciales</legend>
+      <table class="form-table">
+        <tr><td><label>Fondo Inicial Efectivo Bs.:</label></td><td><input type="text" inputmode="decimal" id="ap-fondo-bs" class="input-medium" value="0"></td></tr>
+        <tr><td><label>Fondo Inicial Efectivo USD (físicos):</label></td><td><input type="text" inputmode="decimal" id="ap-fondo-usd" class="input-medium" value="0"></td></tr>
+        <tr><td><label>Tasa BCV (Bs./USD):</label></td><td><input type="text" inputmode="decimal" id="ap-tasa" class="input-medium"></td></tr>
+        <tr><td><label>Cajero:</label></td><td><input type="text" id="ap-cajero" class="input-medium"></td></tr>
+      </table>
+      <div class="ap-hint">La tasa se muestra con el valor actual del sistema. Puede ajustarla si fuere necesario para la jornada.</div>
+    </fieldset>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="confirmarApertura()">✅ Abrir Caja</button>
+      <button class="mod-btn" onclick="closeWindow('apertura-window')">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== RESUMEN DE CIERRE ============== -->
+<div class="window hidden" id="cierre-resumen-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">📑</span><span class="title-text">Resumen de Cierre de Caja</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('cierre-resumen-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Información de la Jornada</legend>
+      <table class="form-table">
+        <tr><td><label>Caja:</label></td><td id="cr-caja">—</td>
+            <td><label>Cajero:</label></td><td id="cr-cajero">—</td></tr>
+        <tr><td><label>Apertura:</label></td><td id="cr-apertura">—</td>
+            <td><label>Cierre:</label></td><td id="cr-cierre">—</td></tr>
+      </table>
+    </fieldset>
+    <fieldset class="panel">
+      <legend>Resumen de la Jornada</legend>
+      <table class="form-table">
+        <tr><td><label>Fondo inicial:</label></td><td id="cr-fondo">—</td></tr>
+        <tr><td><label>Ingresos:</label></td><td id="cr-ingresos">—</td></tr>
+        <tr><td><label>Egresos:</label></td><td id="cr-egresos">—</td></tr>
+        <tr><td><label>Esperado en caja:</label></td><td id="cr-esperado">—</td></tr>
+        <tr><td><label>Conteo físico:</label></td><td id="cr-conteo">—</td></tr>
+        <tr><td><label>Diferencia (sobró / faltó):</label></td><td id="cr-diferencia">—</td></tr>
+      </table>
+    </fieldset>
+    <div class="cr-conciliacion">
+      <span>Conciliación:</span>
+      <b class="cr-badge" id="cr-conciliacion">—</b>
+    </div>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="imprimirResumenCierre()">🖨️ Imprimir Resumen</button>
+      <button class="mod-btn" onclick="closeWindow('cierre-resumen-window')">✔ Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== ARQUEO / CIERRE DE CAJA ============== -->
+<div class="window hidden" id="arqueo-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">💰</span><span class="title-text">Arqueo y Cierre de Caja</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('arqueo-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content arq-content">
+    <div class="arq-info">
+      <span><b>Caja:</b> <span id="arq-caja">—</span></span>
+      <span><b>Cajero:</b> <span id="arq-cajero">—</span></span>
+      <span><b>Apertura:</b> <span id="arq-apertura">—</span></span>
+      <span><b>Tasa BCV:</b> <span id="arq-tasa">—</span></span>
+    </div>
+    <div class="arq-cards">
+      <div class="arq-card"><div class="arq-lbl">Facturas emitidas</div><div class="arq-val" id="arq-facturas">0</div></div>
+      <div class="arq-card"><div class="arq-lbl">Fondo inicial Bs.</div><div class="arq-val" id="arq-fondo-bs">0,00</div></div>
+      <div class="arq-card"><div class="arq-lbl">Fondo inicial USD</div><div class="arq-val" id="arq-fondo-usd">0,00</div></div>
+      <div class="arq-card"><div class="arq-lbl">Total devoluciones</div><div class="arq-val" id="arq-dev">0,00</div></div>
+      <div class="arq-card"><div class="arq-lbl">Total Venta a Crédito</div><div class="arq-val" id="arq-credito">0,00</div></div>
+      <div class="arq-card"><div class="arq-lbl">Total I.V.A.</div><div class="arq-val" id="arq-iva">0,00</div></div>
+      <div class="arq-card"><div class="arq-lbl">Total Ventas Bs.</div><div class="arq-val" id="arq-vtas-bs">0,00</div></div>
+      <div class="arq-card"><div class="arq-lbl">Total Ventas USD</div><div class="arq-val" id="arq-vtas-usd">0,00</div></div>
+    </div>
+    <fieldset class="panel">
+      <legend>Conciliación por Forma de Pago</legend>
+      <table class="grid arq-grid" id="arqueo-body"></table>
+    </fieldset>
+    <div class="cr-conciliacion">
+      <span>Conciliación:</span>
+      <b class="cr-badge exacta" id="arq-conciliacion">—</b>
+    </div>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="confirmarCierre()">🔒 Confirmar Cierre</button>
+      <button class="mod-btn" onclick="imprimirArqueo()">🖨️ Imprimir</button>
+      <button class="mod-btn" onclick="closeWindow('arqueo-window')">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== NUEVO MOVIMIENTO DE CAJA ============== -->
+<div class="window hidden" id="movcaja-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">➕</span><span class="title-text">Nuevo Movimiento de Caja</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('movcaja-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Datos del Movimiento</legend>
+      <table class="form-table">
+        <tr><td><label>Tipo:</label></td><td><select id="mov-tipo"><option>Ingreso</option><option>Egreso</option></select></td>
+            <td><label>Concepto:</label></td><td><select id="mov-concepto"><option>Retiro de Efectivo</option><option>Depósito Bancario</option><option>Pago a Proveedor</option><option>Gasto Menor</option><option>Otro Ingreso</option><option>Otro Egreso</option></select></td></tr>
+        <tr><td><label>Moneda:</label></td><td><select id="mov-moneda"><option>Bs</option><option>USD</option></select></td>
+            <td><label>Monto:</label></td><td><input type="text" inputmode="decimal" id="mov-monto" class="input-medium"></td></tr>
+        <tr><td><label>Referencia:</label></td><td colspan="3"><input type="text" id="mov-ref" class="input-wide" placeholder="Ej: RET 0000001"></td></tr>
+      </table>
+    </fieldset>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="guardarMovCaja()">✅ Guardar</button>
+      <button class="mod-btn" onclick="closeWindow('movcaja-window')">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== AJUSTE DE INVENTARIO ============== -->
+<div class="window hidden" id="ajuste-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">📦</span><span class="title-text">Ajuste de Inventario</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('ajuste-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Datos del Ajuste</legend>
+      <table class="form-table">
+        <tr><td><label>Producto:</label></td><td><input type="text" id="ajuste-codigo" class="input-small" onblur="cargarAjusteProducto()"><button class="btn-mini" onclick="openProductSearch('ajuste-codigo')">...</button>
+            <span id="ajuste-nombre" class="ajuste-nombre"></span></td></tr>
+        <tr><td><label>Existencia Actual:</label></td><td id="ajuste-actual">0,00</td></tr>
+        <tr><td><label>Tipo:</label></td><td><select id="ajuste-tipo" onchange="actualizarAjusteResultado()"><option>Nuevo Stock</option><option>Entrada (+)</option><option>Salida (−)</option></select></td></tr>
+        <tr><td><label>Cantidad / Nuevo Stock:</label></td><td><input type="text" inputmode="decimal" id="ajuste-cantidad" class="input-medium" oninput="actualizarAjusteResultado()"></td></tr>
+        <tr><td><label>Resultado:</label></td><td id="ajuste-resultado">0,00</td></tr>
+        <tr><td><label>Motivo:</label></td><td><input type="text" id="ajuste-motivo" class="input-wide"></td></tr>
+      </table>
+    </fieldset>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="confirmarAjuste()">✅ Aplicar</button>
+      <button class="mod-btn" onclick="closeWindow('ajuste-window')">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== KARDEX ============== -->
+<div class="window hidden" id="kardex-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🗂️</span><span class="title-text">Kardex por Producto</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('kardex-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-search">
+    <span>Producto:</span>
+    <select id="kardex-producto" class="input-wide" onchange="renderKardex()"></select>
+  </div>
+  <div class="module-content">
+    <table class="grid full-grid">
+      <thead>
+        <tr><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Cantidad</th><th>Referencia</th><th>Saldo</th></tr>
+      </thead>
+      <tbody id="kardex-body"></tbody>
+    </table>
+    <div class="kardex-totals" id="kardex-totals"></div>
+  </div>
+</div>
+
+<!-- ============== NUEVA COTIZACIÓN ============== -->
+<div class="window hidden" id="cotizacion-nueva-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">📝</span><span class="title-text">Nueva Cotización</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('cotizacion-nueva-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Datos de la Cotización</legend>
+      <table class="form-table">
+        <tr><td><label>N°:</label></td><td><input type="text" id="coti-n-nro" class="input-small" disabled></td>
+            <td><label>Fecha:</label></td><td><input type="text" id="coti-n-fecha" class="input-small"></td></tr>
+        <tr><td><label>Cliente:</label></td><td colspan="3"><select id="coti-n-cliente"></select></td></tr>
+        <tr><td><label>Observaciones:</label></td><td colspan="3"><input type="text" id="coti-n-obs" class="input-wide"></td></tr>
+      </table>
+    </fieldset>
+    <fieldset class="panel">
+      <legend>Agregar Producto</legend>
+      <table class="form-table">
+        <tr><td><label>Producto (código o palabra clave):</label></td>
+            <td colspan="3">
+              <div class="prov-search">
+                <input type="text" id="coti-n-prod" class="input-wide" autocomplete="off" placeholder="Código, nombre o palabra clave..." oninput="buscarProductoCotizacion()" onkeydown="onProductoCotiKey(event)">
+                <div class="prov-results" id="coti-n-prod-results"></div>
+              </div>
+            </td></tr>
+        <tr><td><label>Cantidad:</label></td><td><input type="text" inputmode="decimal" id="coti-n-cant" class="input-medium" value="1"></td></tr>
+        <tr><td><label>Precio Unit. (Bs.):</label></td><td><input type="text" inputmode="decimal" id="coti-n-precio" class="input-medium" oninput="mostrarPrecioCotiUsd()"> <span id="coti-n-precio-usd" class="usd-sub">= 0,00 $</span></td></tr>
+      </table>
+      <button class="btn-add-cart" onclick="agregarLineaCotizacion()">➕ Agregar a Cotización (Enter)</button>
+    </fieldset>
+    <fieldset class="panel">
+      <legend>Detalle</legend>
+      <table class="grid">
+        <thead><tr><th>Código</th><th>Descripción</th><th>Cant.</th><th>Precio Bs.</th><th>Precio USD</th><th>Total Bs.</th><th>Total USD</th><th></th></tr></thead>
+        <tbody id="coti-n-body"></tbody>
+      </table>
+    </fieldset>
+    <div class="cotiz-totals">
+      <div>Sub-Total: <b id="coti-n-sub">0,00</b> <span class="usd-sub">(<b id="coti-n-sub-usd">0,00</b> $)</span></div>
+      <div>Descuento (%): <input type="text" inputmode="decimal" id="coti-n-desc-input" class="input-small" value="0" oninput="renderCotizacionNueva()"> <span class="usd-sub">(<b id="coti-n-desc-usd">0,00</b> $)</span></div>
+      <div id="coti-n-iva-label">I.V.A.: <b id="coti-n-iva">0,00</b> <span class="usd-sub">(<b id="coti-n-iva-usd">0,00</b> $)</span></div>
+      <div class="cotiz-total-row">TOTAL: <b id="coti-n-total">0,00</b> <span class="usd-sub">(<b id="coti-n-total-usd">0,00</b> $)</span></div>
+    </div>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="guardarCotizacion()">💾 Guardar Cotización</button>
+      <button class="mod-btn" onclick="closeWindow('cotizacion-nueva-window')">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MÓDULO TALLER / ÓRDENES DE SERVICIO ============== -->
+<div class="window hidden" id="taller-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🔧</span><span class="title-text">Taller / Órdenes de Servicio</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('taller-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="nuevaOrdenTaller()"><span class="mod-icon">📄</span> Nueva Orden</button>
+    <button class="mod-btn" onclick="editarOrdenTaller()"><span class="mod-icon">✏️</span> Editar</button>
+    <button class="mod-btn" onclick="document.getElementById('tal-search').focus()"><span class="mod-icon">🔍</span> Buscar</button>
+    <button class="mod-btn" onclick="imprimirOrdenTaller()"><span class="mod-icon">🖨️</span> Imprimir</button>
+    <button class="mod-btn" onclick="abrirHistorialTaller()"><span class="mod-icon">🗂️</span> Historial</button>
+    <button class="mod-btn" onclick="abrirProximosAceite()"><span class="mod-icon">🛢️</span> Próx. Cambio Aceite</button>
+    <button class="mod-btn" onclick="abrirConsultaOrdenes()"><span class="mod-icon">📋</span> Consulta Órdenes</button>
+    <button class="mod-btn" onclick="closeWindow('taller-window')"><span class="mod-icon">🚪</span> Salir</button>
+  </div>
+  <div class="taller-filters">
+    <span>Buscar:</span><input type="text" id="tal-search" class="input-medium" oninput="filtrarOrdenesTaller()" placeholder="Nro, cliente, placa o trabajo...">
+    <span>Estado:</span><select id="tal-estado" onchange="filtrarOrdenesTaller()"><option>Todos</option><option>Recibido</option><option>En Proceso</option><option>Listo</option><option>Entregado</option><option>Anulada</option></select>
+  </div>
+  <table class="grid full-grid">
+    <thead>
+      <tr><th>N° Orden</th><th>Fecha</th><th>Hora</th><th>Cliente</th><th>Vehículo</th><th>Trabajo</th><th>Total Bs.</th><th>Estado</th></tr>
+    </thead>
+    <tbody id="ordenes-taller-body"></tbody>
+  </table>
+  <div class="taller-layout">
+    <fieldset class="panel">
+      <legend>Trabajo / Repuestos y Servicios</legend>
+      <table class="grid">
+        <thead><tr><th>Código</th><th>Descripción</th><th>Cant.</th><th>Precio Bs.</th><th>USD</th><th>Total Bs.</th></tr></thead>
+        <tbody id="taller-lineas-body"></tbody>
+      </table>
+      <div class="cotiz-totals" id="taller-totales"></div>
+    </fieldset>
+    <div class="taller-side">
+      <div id="taller-ficha"></div>
+      <div id="taller-timeline"></div>
+      <div id="taller-acciones"></div>
+      <fieldset class="panel">
+        <legend>Historial del Cliente</legend>
+        <div class="taller-hist" id="taller-historial"></div>
+      </fieldset>
+    </div>
+  </div>
+</div>
+
+<!-- ============== NUEVA ORDEN DE SERVICIO ============== -->
+<div class="window hidden" id="taller-nueva-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🔧</span><span class="title-text">Orden de Servicio</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('taller-nueva-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Datos de la Orden</legend>
+      <table class="form-table">
+        <tr><td><label>N°:</label></td><td><input type="text" id="tal-n-nro" class="input-small" disabled></td>
+            <td><label>Fecha:</label></td><td><input type="text" id="tal-n-fecha" class="input-small"></td></tr>
+        <tr><td><label>Cliente:</label></td><td colspan="3"><select id="tal-n-cliente" onchange="fillVehiculosTaller()"></select></td></tr>
+        <tr><td><label>Vehículo:</label></td><td colspan="3"><select id="tal-n-vehiculo" onchange="onCambioVehiculoTaller()"></select></td></tr>
+      </table>
+    </fieldset>
+    <table class="form-table taller-veh-row" id="tal-n-veh-row">
+      <tr>
+        <td><label>Placa:</label></td><td><input type="text" id="tal-n-placa" class="input-small" placeholder="ABC123"></td>
+        <td><label>Marca:</label></td><td><input type="text" id="tal-n-marca" class="input-medium"></td>
+        <td><label>Modelo:</label></td><td><input type="text" id="tal-n-modelo" class="input-medium"></td>
+        <td><label>Año:</label></td><td><input type="text" id="tal-n-anio" class="input-small"></td>
+        <td><label>Color:</label></td><td><input type="text" id="tal-n-color" class="input-medium"></td>
+      </tr>
+    </table>
+    <fieldset class="panel">
+      <legend>Trabajo / Diagnóstico</legend>
+      <textarea id="tal-n-trabajo" class="input-wide" rows="2" placeholder="Descripción del trabajo a realizar, vehículo, kilometraje, etc."></textarea>
+    </fieldset>
+    <fieldset class="panel">
+      <legend>Notas / Observaciones</legend>
+      <textarea id="tal-n-obs" class="input-wide" rows="2" placeholder="Observaciones adicionales (opcional)"></textarea>
+    </fieldset>
+    <fieldset class="panel">
+      <legend>Agregar Servicio / Repuesto</legend>
+      <table class="form-table">
+        <tr><td><label>Producto (código o palabra clave):</label></td>
+            <td colspan="3">
+              <div class="prov-search">
+                <input type="text" id="tal-n-prod" class="input-wide" autocomplete="off" placeholder="Código, nombre o palabra clave..." oninput="buscarProductoOrden()" onkeydown="onProductoOrdenKey(event)">
+                <div class="prov-results" id="tal-n-prod-results"></div>
+              </div>
+            </td></tr>
+        <tr><td><label>Cantidad:</label></td><td><input type="text" inputmode="decimal" id="tal-n-cant" class="input-medium" value="1"></td></tr>
+        <tr><td><label>Precio Unit. (Bs.):</label></td><td><input type="text" inputmode="decimal" id="tal-n-precio" class="input-medium" oninput="mostrarPrecioOrdenUsd()"> <span id="tal-n-precio-usd" class="usd-sub">= 0,00 $</span></td></tr>
+      </table>
+      <button class="btn-add-cart" onclick="agregarLineaOrden()">➕ Agregar a la Orden (Enter)</button>
+    </fieldset>
+    <fieldset class="panel">
+      <legend>Detalle</legend>
+      <table class="grid">
+        <thead><tr><th>Código</th><th>Descripción</th><th>Cant.</th><th>Precio Bs.</th><th>Precio USD</th><th>Total Bs.</th><th>Total USD</th><th></th></tr></thead>
+        <tbody id="tal-n-body"></tbody>
+      </table>
+    </fieldset>
+    <div class="cotiz-totals">
+      <div>Sub-Total: <b id="tal-n-sub">0,00</b></div>
+      <div id="tal-n-iva-label">I.V.A.: <b id="tal-n-iva">0,00</b></div>
+      <div class="cotiz-total-row">TOTAL: <b id="tal-n-total">0,00</b></div>
+    </div>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="guardarOrdenTaller()">💾 Guardar Orden</button>
+      <button class="mod-btn" onclick="closeWindow('taller-nueva-window')">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== ENTREGAR A CRÉDITO (TALLER) ============== -->
+<div class="window hidden" id="taller-credito-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🚪</span><span class="title-text">Entregar a Crédito</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('taller-credito-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <div class="ficha" id="tal-cred-info" style="border:1px solid #b9c3d4;padding:10px;margin-bottom:12px;background:#eef3fb"></div>
+    <table class="form-table">
+      <tr><td><label>Días de Crédito:</label></td><td><input type="text" inputmode="numeric" id="tal-cred-dias" class="input-small" value="30"></td></tr>
+    </table>
+    <small>Se creará automáticamente una cuenta por cobrar (CxC) con vencimiento = hoy + días. La orden quedará en estado <b>Entregado</b>.</small>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="confirmarCreditoOrdenTaller()">✅ Confirmar Crédito</button>
+      <button class="mod-btn" onclick="closeWindow('taller-credito-window')">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== RECORDATORIO DE SERVICIOS PROGRAMADOS (Cambio de Aceite) ============== -->
+<div class="window hidden" id="taller-rec-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🛢️</span><span class="title-text">Servicios Programados — Cambio de Aceite</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="cerrarRecordatorioServicios()">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <div class="rec-aviso">
+      Tienes Vehículos de Clientes que ya Requieren Servicios Programados, Por Favor revise.
+      Los servicios de cambio de aceite cuyo período haya vencido o esté por vencer (dentro de 2 días)
+      aparecen a continuación.
+    </div>
+    <table class="grid full-grid">
+      <thead>
+        <tr><th>Cliente</th><th>Vehículo</th><th>Último Cambio</th><th>Próximo Servicio</th><th>Resta</th></tr>
+      </thead>
+      <tbody id="taller-rec-body"></tbody>
+    </table>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="cerrarRecordatorioServicios()">✅ Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== HISTORIAL DEL CLIENTE (búsqueda inteligente por cliente / vehículo) ============== -->
+<div class="window hidden" id="taller-hist-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🗂️</span><span class="title-text">Historial de Servicios por Cliente</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('taller-hist-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Buscar Cliente</legend>
+      <div class="prov-search">
+        <input type="text" id="tal-his-search" class="input-wide" autocomplete="off" placeholder="Nombre, cédula/RIF, código o placa de un vehículo..." oninput="buscarClienteTallerHistorial()" onkeydown="onClienteHistorialKey(event)">
+        <div class="prov-results" id="tal-his-results"></div>
+      </div>
+    </fieldset>
+    <div id="tal-his-detalle"></div>
+  </div>
+</div>
+
+<!-- ============== PRÓXIMOS CAMBIOS DE ACEITE (consulta por rangos) ============== -->
+<div class="window hidden" id="taller-aceite-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🛢️</span><span class="title-text">Vehículos — Próximos Cambios de Aceite</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('taller-aceite-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <div class="taller-filters">
+      <span>Rango de búsqueda:</span>
+      <select id="tal-aceite-rango" onchange="renderProximosAceite()">
+        <option value="15">De 1 a 15 días</option>
+        <option value="30">De 1 a 30 días</option>
+        <option value="venc">Plazo de 90 días vencidos</option>
+      </select>
+    </div>
+    <div class="rec-aviso" id="tal-aceite-info"></div>
+    <table class="grid full-grid">
+      <thead>
+        <tr><th>Cliente (Dueño)</th><th>Vehículo</th><th>Último Cambio</th><th>Próximo Servicio</th><th>Resta</th></tr>
+      </thead>
+      <tbody id="tal-aceite-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============== CONSULTA DE ÓRDENES DE SERVICIO (búsqueda personalizada) ============== -->
+<div class="window hidden" id="taller-consulta-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">📋</span><span class="title-text">Consulta de Órdenes de Servicio</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('taller-consulta-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <div class="taller-filters">
+      <span>Buscar:</span><input type="text" id="tal-csl-search" class="input-medium" oninput="filtrarConsultaOrdenes()" placeholder="Cliente, placa, marca, modelo o trabajo...">
+      <span>Estado:</span><select id="tal-csl-estado" onchange="filtrarConsultaOrdenes()"><option>Todos</option><option>Recibido</option><option>En Proceso</option><option>Listo</option><option>Entregado</option><option>Anulada</option></select>
+      <span>Desde:</span><input type="text" id="tal-csl-desde" class="input-small" oninput="filtrarConsultaOrdenes()" placeholder="dd/mm/aaaa">
+      <span>Hasta:</span><input type="text" id="tal-csl-hasta" class="input-small" oninput="filtrarConsultaOrdenes()" placeholder="dd/mm/aaaa">
+    </div>
+    <table class="grid full-grid">
+      <thead>
+        <tr><th>N° Orden</th><th>Cliente</th><th>Vehículo</th><th>Trabajo</th><th>Recepción</th><th>Hora Ingreso</th><th>Entrega</th><th>Hora Entrega</th><th>Total Bs.</th><th>Estado</th></tr>
+      </thead>
+      <tbody id="tal-csl-body"></tbody>
+    </table>
+    <div id="tal-csl-detalle"></div>
+  </div>
+</div>
+
+<!-- ============== COMPARTIR (PDF / REPORTE) ============== -->
+<div class="window hidden" id="compartir-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">📤</span><span class="title-text">Compartir Reporte</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('compartir-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <div style="font-weight:bold;margin-bottom:8px" id="compartir-titulo">Reporte</div>
+    <textarea id="compartir-area" class="input-wide" rows="10" style="font-family:monospace;font-size:11px"></textarea>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="compartirWhatsApp()">📱 WhatsApp</button>
+      <button class="mod-btn" onclick="compartirCorreo()">✉️ Correo</button>
+      <button class="mod-btn" onclick="compartirCopiar()">📋 Copiar</button>
+      <button class="mod-btn" onclick="closeWindow('compartir-window')">✖ Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== NUEVA COMPRA ============== -->
+<div class="window hidden" id="compra-nueva-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">📄</span><span class="title-text">Nueva Compra</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('compra-nueva-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content comp-n-content">
+    <div class="comp-n-col">
+      <fieldset class="panel">
+        <legend>1. Datos de la Compra</legend>
+        <table class="form-table">
+          <tr><td><label>N°:</label></td><td><input type="text" id="comp-n-nro" class="input-small" disabled></td>
+              <td><label>Fecha:</label></td><td><input type="text" id="comp-n-fecha" class="input-small"></td></tr>
+          <tr><td><label>Nro. de Factura:</label></td><td colspan="3"><input type="text" id="comp-n-factura" class="input-wide" placeholder="N° de factura del proveedor..."></td></tr>
+          <tr>
+            <td><label>Proveedor:</label></td>
+            <td colspan="3">
+              <div class="prov-search">
+                <input type="text" id="comp-n-proveedor" class="input-wide" placeholder="Escriba para buscar proveedor..." autocomplete="off" oninput="buscarProveedorCompra()">
+                <div class="prov-results" id="comp-n-prov-results"></div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><label>Tasa BCV del día:</label></td><td><input type="text" inputmode="decimal" id="comp-n-tasa-bcv" class="input-small" title="Tasa oficial BCV (VES/USD)" oninput="cambiarMonedaCompra()"></td>
+            <td><label>Moneda de Compra:</label></td><td><select id="comp-n-monedacompra" onchange="cambiarMonedaCompra()"><option value="USDT">USDT / Paralelo</option><option value="BCV">BCV</option></select></td>
+          </tr>
+          <tr>
+            <td><label>Valor Tasa de Compra:</label></td><td><input type="text" inputmode="decimal" id="comp-n-tasa-compra" class="input-small" title="Tasa USDT (si se selecciona USDT/Paralelo)" oninput="mostrarCostosProductoCompra()"></td>
+            <td><label>Costeo Inventario:</label></td><td><select id="comp-n-costeo"><option value="promedio">Promedio Ponderado</option><option value="ultima">Última Compra</option></select></td>
+          </tr>
+          <tr><td><label>Observaciones:</label></td><td colspan="3"><input type="text" id="comp-n-obs" class="input-wide"></td></tr>
+        </table>
+      </fieldset>
+      <fieldset class="panel">
+        <legend>2. Tipo de Compra y Condiciones de Pago</legend>
+        <table class="form-table">
+          <tr><td><label>Tipo de Compra:</label></td><td>
+            <select id="comp-n-tipo" onchange="cambiarTipoCompra()">
+              <option value="Contado">Contado</option>
+              <option value="Credito">Crédito</option>
+              <option value="Mixto">Mixto</option>
+            </select>
+          </td></tr>
+        </table>
+        <div id="comp-n-cond-fields" style="display:none">
+          <table class="form-table">
+            <tr><td><label>Días de Crédito:</label></td><td><input type="text" inputmode="numeric" id="comp-n-dias" class="input-small" value="30"></td></tr>
+          </table>
+        </div>
+        <div id="comp-n-mixto-fields" style="display:none">
+          <table class="form-table">
+            <tr><td><label>Monto Pagado (Bs.):</label></td><td><input type="text" inputmode="decimal" id="comp-n-pagob" class="input-medium" placeholder="0,00" oninput="recalcPagoMixto('bs')"></td></tr>
+            <tr><td><label>Monto Pagado (USD Prov.):</label></td><td><input type="text" inputmode="decimal" id="comp-n-pagousd" class="input-medium" placeholder="0,00" title="USD al precio del proveedor (USDT / paralelo)" oninput="recalcPagoMixto('usd')"></td></tr>
+          </table>
+        </div>
+      </fieldset>
+      <fieldset class="panel">
+        <legend>3. Agregar Producto</legend>
+        <table class="form-table">
+          <tr><td><label>Producto (código o palabra clave):</label></td>
+              <td>
+                <div class="prov-search">
+                  <input type="text" id="comp-n-prod" class="input-wide" autocomplete="off" placeholder="Código, nombre o palabra clave..." oninput="buscarProductoCompra()" onkeydown="onProductoCompraKey(event)">
+                  <div class="prov-results" id="comp-n-prod-results"></div>
+                </div>
+              </td></tr>
+          <tr><td><label>Cantidad:</label></td><td><input type="text" inputmode="decimal" id="comp-n-cant" class="input-medium" value="1" oninput="mostrarCostosProductoCompra()"></td></tr>
+          <tr><td><label>Costo Unit. Proveedor (USD):</label></td><td><input type="text" inputmode="decimal" id="comp-n-costo" class="input-medium" placeholder="En la moneda de compra" oninput="mostrarCostosProductoCompra()"></td></tr>
+          <tr><td><label>Exento de IVA:</label></td><td><label><input type="checkbox" id="comp-n-exento"> Sí, esta línea no paga I.V.A.</label></td></tr>
+          <tr><td><label>Precio Anterior:</label></td><td><input type="text" id="comp-n-prev" class="input-medium" disabled></td></tr>
+          <tr><td><label>Precio Ponderado Actual:</label></td><td><input type="text" id="comp-n-pond" class="input-medium" disabled></td></tr>
+          <tr><td><label>Decimales:</label></td><td><select id="comp-n-dec" onchange="cambiarDecimalesCompra()"><option value="2">2 decimales</option><option value="3">3 decimales</option><option value="4">4 decimales</option></select></td></tr>
+        </table>
+        <button class="btn-add-cart" onclick="agregarLineaCompra()">➕ Agregar a Compra (Enter)</button>
+      </fieldset>
+    </div>
+    <div class="comp-n-col">
+      <fieldset class="panel">
+        <legend>4. Detalle de Compra</legend>
+        <table class="grid comp-grid">
+          <thead><tr><th>Código</th><th>Producto</th><th>Cant.</th><th>Costo Prov. (USD)</th><th>Costo Base (USD BCV)</th><th>Exento IVA</th><th>Subtotal Bs.</th><th>I.V.A.</th><th>Total</th><th></th></tr></thead>
+          <tbody id="comp-n-body"></tbody>
+        </table>
+      </fieldset>
+      <div class="cotiz-totals">
+        <div>Total Factura (Bs.): <b id="comp-n-total">0,00</b></div>
+        <div>Total Factura (USD Prov.): <b id="comp-n-total-usd-prov">0,00 $</b></div>
+        <div>Total Factura (USD BCV): <b id="comp-n-total-usd">0,00 $</b></div>
+        <div>Total Pagado (USD Prov.): <b id="comp-n-pagado-usd-prov">0,00 $</b> <span class="usd-sub" id="comp-n-pagado-bs-eq">(Bs. 0,00)</span></div>
+        <div id="comp-n-pagado-mixto-row" style="display:none">Total Pagado (Mixto) — USD Prov.: <b id="comp-n-pagado-mixto-prov">0,00</b> · USD BCV: <b id="comp-n-pagado-mixto-bcv">0,00 $</b></div>
+        <div>Total Pagado (Bs.): <b id="comp-n-pagado">0,00</b></div>
+        <div class="cotiz-total-row">Total Pendiente (Crédito) USD: <b id="comp-n-pendiente-usd">0,00 $</b> <span class="usd-sub" id="comp-n-pendiente-bs-eq">(Bs. 0,00)</span></div>
+        <div>Total Pendiente (Bs.): <b id="comp-n-pendiente">0,00</b></div>
+      </div>
+      <div class="pago-actions">
+        <button class="mod-btn" onclick="guardarCompra()">💾 Guardar Compra (Recibida)</button>
+        <button class="mod-btn" onclick="closeWindow('compra-nueva-window')">✖ Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== CAMBIO DE CONTRASEÑA ============== -->
+<div class="window hidden" id="password-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🔑</span><span class="title-text">Cambio de Contraseña</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('password-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Cambio de Contraseña</legend>
+      <table class="form-table">
+        <tr><td><label>Usuario:</label></td><td><select id="pass-usuario"></select></td></tr>
+        <tr><td><label>Contraseña Actual:</label></td><td><input type="password" id="pass-actual" class="input-medium"></td></tr>
+        <tr><td><label>Nueva Contraseña:</label></td><td><input type="password" id="pass-nueva" class="input-medium"></td></tr>
+        <tr><td><label>Confirmar Nueva:</label></td><td><input type="password" id="pass-confirm" class="input-medium"></td></tr>
+      </table>
+    </fieldset>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="guardarPassword()">💾 Cambiar</button>
+      <button class="mod-btn" onclick="closeWindow('password-window')">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== CONFIGURACIÓN ============== -->
+<div class="window hidden" id="config-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">⚙️</span><span class="title-text">Configuración</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('config-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Datos de la Empresa</legend>
+      <table class="form-table">
+        <tr><td><label>Razón Social:</label></td><td><input type="text" id="cfg-empresa" class="input-wide"></td></tr>
+        <tr><td><label>R.I.F.:</label></td><td><input type="text" id="cfg-rif" class="input-medium"></td></tr>
+        <tr><td><label>Dirección:</label></td><td><input type="text" id="cfg-dir" class="input-wide"></td></tr>
+        <tr><td><label>Teléfono:</label></td><td><input type="text" id="cfg-tel" class="input-medium"></td></tr>
+      </table>
+    </fieldset>
+    <fieldset class="panel">
+      <legend>Operación</legend>
+      <table class="form-table">
+        <tr><td><label>Cajero por defecto:</label></td><td><input type="text" id="cfg-cajero" class="input-medium"></td></tr>
+        <tr><td><label>Turno:</label></td><td><input type="text" inputmode="decimal" id="cfg-turno" class="input-small"></td></tr>
+      </table>
+    </fieldset>
+    <fieldset class="panel">
+      <legend>Datos y Almacenamiento</legend>
+      <table class="form-table">
+        <tr><td><label>Motor:</label></td><td><span id="cfg-motor" class="input-medium">—</span></td></tr>
+        <tr><td><label>Retener movimientos de inventario (días, 0=todo):</label></td><td><input type="text" inputmode="decimal" id="cfg-poda-inv" class="input-small"></td></tr>
+        <tr><td><label>Retener movimientos de caja (días, 0=todo):</label></td><td><input type="text" inputmode="decimal" id="cfg-poda-caja" class="input-small"></td></tr>
+        <tr><td><label>Retener ventas (días, 0=todo):</label></td><td><input type="text" inputmode="decimal" id="cfg-poda-ventas" class="input-small"></td></tr>
+        <tr><td><label>Máx. de registros de auditoría:</label></td><td><input type="text" inputmode="decimal" id="cfg-poda-auditoria" class="input-small"></td></tr>
+        <tr><td><label>IP para equipos en la red (si el servidor está activo):</label></td>
+            <td><input type="text" id="cfg-red-ip" class="input-medium" readonly></td></tr>
+        <tr><td><label>Conectar esta caja al servidor (dejar vacío en la principal):</label></td>
+            <td><input type="text" id="cfg-red-servidor" class="input-medium" placeholder="192.168.1.10"></td></tr>
+        <tr><td><label>Modo híbrido (operar offline y fusionar al reconectar):</label></td>
+            <td><input type="checkbox" id="cfg-red-hibrido" onchange="toggleModoHibrido()"></td></tr>
+        <tr><td><label>Servidor de red (multi-terminal):</label></td><td><span id="cfg-red-st" class="input-medium">—</span></td></tr>
+        <tr><td><label>Estado de conexión:</label></td><td><span id="cfg-red-status" class="input-medium">—</span></td></tr>
+      </table>
+      <div class="pago-actions">
+        <button class="mod-btn" onclick="guardarPoda()">🗑 Aplicar Poda</button>
+        <button class="mod-btn" onclick="crearRespaldo()">💾 Crear Respaldo</button>
+        <button class="mod-btn" onclick="toggleServidorRed()">🌐 Activar Servidor</button>
+        <button class="mod-btn" onclick="probarServidor()">🔌 Probar Conexión</button>
+      </div>
+    </fieldset>
+    <fieldset class="panel">
+      <legend>Gestor de Cajas — crear cajas y asignarlas a los cajeros</legend>
+      <table class="grid">
+        <thead><tr><th>Caja</th><th>Asignada a (Cajero)</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody id="cajas-body"></tbody>
+      </table>
+      <table class="form-table">
+        <tr><td><label>Nombre de Caja:</label></td><td><input type="text" id="cfg-caja-nombre" class="input-medium"></td>
+            <td><label>Cajero Asignado:</label></td><td><select id="cfg-caja-cajero" class="input-medium"></select></td></tr>
+      </table>
+      <div class="pago-actions">
+        <button class="mod-btn" onclick="guardarCaja()">💾 Guardar Caja</button>
+        <button class="mod-btn" onclick="nuevaCaja()">📄 Nueva Caja</button>
+        <button class="mod-btn" onclick="eliminarCaja()">❌ Eliminar Caja</button>
+      </div>
+    </fieldset>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="guardarConfig()">💾 Guardar Configuración</button>
+      <button class="mod-btn" onclick="closeWindow('config-window')">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== PARÁMETROS DEL SISTEMA ============== -->
+<div class="window hidden" id="parametros-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🛠️</span><span class="title-text">Parámetros del Sistema</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('parametros-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Parámetros</legend>
+      <table class="form-table">
+        <tr><td><label>Tasa BCV (Bs/USD):</label></td><td><input type="text" inputmode="decimal" id="par-tasa" class="input-medium"></td>
+            <td><label>I.V.A. (%):</label></td><td><input type="text" inputmode="decimal" id="par-iva" class="input-small"></td></tr>
+        <tr><td><label>Serie de Factura:</label></td><td><input type="text" id="par-serie" class="input-small"></td></tr>
+        <tr><td><label>PIN Supervisor:</label></td><td><input type="password" id="par-pin" class="input-small" title="PIN requerido para devoluciones y anulación de ventas" autocomplete="new-password"></td>
+            <td><label>Días Cambio de Aceite:</label></td><td><input type="text" inputmode="numeric" id="par-dias-aceite" class="input-small" title="Días para el próximo servicio de cambio de aceite"></td></tr>
+      </table>
+    </fieldset>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="guardarParametros()">💾 Guardar</button>
+      <button class="mod-btn" onclick="closeWindow('parametros-window')">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== USUARIOS ============== -->
+<div class="window hidden" id="usuarios-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">👥</span><span class="title-text">Usuarios</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('usuarios-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="nuevoUsuario()"><span class="mod-icon">📄</span> Nuevo</button>
+    <button class="mod-btn" onclick="guardarUsuario()"><span class="mod-icon">💾</span> Guardar</button>
+    <button class="mod-btn" onclick="eliminarUsuario()"><span class="mod-icon">❌</span> Eliminar</button>
+    <button class="mod-btn" onclick="closeWindow('usuarios-window')"><span class="mod-icon">🚪</span> Salir</button>
+  </div>
+  <div class="module-content">
+    <div class="clientes-grid">
+      <table class="grid" id="usuarios-list">
+        <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Activo</th></tr></thead>
+        <tbody id="usuarios-body"></tbody>
+      </table>
+      <table class="form-table">
+        <tr><td><label>Usuario:</label></td><td><input type="text" id="usu-usuario" class="input-medium"></td>
+            <td><label>Activo:</label></td><td><input type="checkbox" id="usu-activo" checked></td></tr>
+        <tr><td><label>Nombre:</label></td><td colspan="3"><input type="text" id="usu-nombre" class="input-wide"></td></tr>
+        <tr><td><label>Rol:</label></td><td><select id="usu-rol"><option>Administrador</option><option>Cajero</option><option>Consulta</option></select></td>
+            <td><label>Clave:</label></td><td><input type="password" id="usu-clave" class="input-medium"><div id="usu-clave-note" style="display:none;font-size:9px;color:#b35c00;margin-top:2px">Solo se cambia en "Cambio de Contraseña"</div></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============== RESPALDOS ============== -->
+<div class="window hidden" id="respaldos-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">💾</span><span class="title-text">Respaldos</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('respaldos-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="crearRespaldo()"><span class="mod-icon">➕</span> Crear Respaldo</button>
+    <button class="mod-btn" onclick="cargarRespaldoArchivo()"><span class="mod-icon">📂</span> Cargar Archivo</button>
+    <button class="mod-btn" onclick="descargarRespaldo()"><span class="mod-icon">📤</span> Descargar</button>
+    <button class="mod-btn" onclick="closeWindow('respaldos-window')"><span class="mod-icon">🚪</span> Salir</button>
+  </div>
+  <div class="module-content">
+    <table class="grid full-grid">
+      <thead><tr><th>Fecha</th><th>Hora</th><th>Registros</th><th>Acciones</th></tr></thead>
+      <tbody id="respaldos-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============== AUDITORÍA ============== -->
+<div class="window hidden" id="auditoria-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🕵️</span><span class="title-text">Auditoría</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('auditoria-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-search">
+    <span>Filtrar:</span>
+    <input type="text" id="aud-filtro" class="input-medium" oninput="filtrarAuditoria()" placeholder="Acción o texto...">
+    <button class="btn-mini" onclick="document.getElementById('aud-filtro').value='';filtrarAuditoria()">✕</button>
+  </div>
+  <div class="module-content">
+    <table class="grid full-grid">
+      <thead><tr><th>Fecha</th><th>Hora</th><th>Usuario</th><th>Acción</th><th>Detalle</th></tr></thead>
+      <tbody id="aud-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============== REPORTE (VISTA PREVIA) ============== -->
+<div class="window hidden" id="reporte-vista-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">📊</span><span class="title-text">Vista Previa del Reporte</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('reporte-vista-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-search">
+    <span class="rep-vista-titulo" id="rep-vista-titulo"></span>
+    <span class="task-spacer"></span>
+    <button class="mod-btn" onclick="imprimirReporte()">🖨️ Imprimir</button>
+    <button class="mod-btn" onclick="exportarReporte()">📤 Exportar CSV</button>
+  </div>
+  <div class="module-content">
+    <table class="grid full-grid" id="rep-vista-table"></table>
+  </div>
+</div>
+
+<!-- Dashboard de Administración -->
+<div class="window hidden" id="dashboard-window">
+  <div class="title-bar">
+    <div class="title-left">
+      <span class="app-icon">📊</span>
+      <span class="title-text">Panel de Administración</span>
+    </div>
+    <div class="title-center"><span>Resumen General</span></div>
+    <div class="title-right">
+      <span id="dash-datetime"> </span>
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('dashboard-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-search">
+    <span class="rep-vista-titulo">Indicadores del negocio</span>
+    <span class="task-spacer"></span>
+    <button class="mod-btn" onclick="renderDashboard()">🔄 Actualizar</button>
+  </div>
+  <div class="module-content" id="dashboard-body"></div>
+</div>
+
+<!-- ============== ÚLTIMA FACTURA (reimpresión) ============== -->
+<div class="window hidden" id="ultima-factura-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🧾</span><span class="title-text">Última Factura</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('ultima-factura-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-search">
+    <span>Facturas del día:</span>
+    <input type="text" id="uf-search" class="input-medium" placeholder="Nº o cliente..." oninput="renderUltimasFacturas()">
+    <button class="btn-mini" title="Limpiar" onclick="document.getElementById('uf-search').value='';renderUltimasFacturas()">✕</button>
+    <span class="task-spacer"></span>
+    <button class="mod-btn" onclick="imprimirUltimaFactura()">🖨️ Imprimir Ticket</button>
+    <button class="mod-btn" onclick="closeWindow('ultima-factura-window')">✕ Cerrar</button>
+  </div>
+  <div class="uf-layout">
+    <fieldset class="panel">
+      <legend>Facturas</legend>
+      <table class="grid" id="uf-grid">
+        <thead><tr><th>Nº</th><th>Hora</th><th>Cliente</th><th>Total</th></tr></thead>
+        <tbody id="uf-body"></tbody>
+      </table>
+    </fieldset>
+    <fieldset class="panel">
+      <legend>Detalle de la Factura</legend>
+      <div class="uf-info" id="uf-info"></div>
+      <table class="grid" id="uf-detail-grid">
+        <thead><tr><th>Código</th><th>Descripción</th><th>Cant.</th><th>Precio Bs.</th><th>Precio USD</th><th>Total Bs.</th></tr></thead>
+        <tbody id="uf-detail-body"></tbody>
+      </table>
+      <div class="cotiz-totals" id="uf-totals"></div>
+    </fieldset>
+  </div>
+</div>
+
+<!-- Modal de cantidad y precio -->
+<div class="qty-overlay hidden" id="qty-modal">
+  <div class="qty-box">
+    <div class="qty-title">Cantidad y Precio del Producto</div>
+    <div class="qty-product" id="qty-product"></div>
+    <div class="qty-row">
+      <button class="qty-btn" onclick="ajustarQty(-1)">−</button>
+      <input type="text" inputmode="decimal" id="qty-input" value="1">
+      <button class="qty-btn" onclick="ajustarQty(1)">+</button>
+    </div>
+    <div class="qty-precio-row">
+      <label for="qty-tipo-precio">Precio:</label>
+      <select id="qty-tipo-precio" onchange="qtySeleccionarTipoPrecio()"></select>
+      <input type="text" inputmode="decimal" id="qty-precio" readonly>
+    </div>
+    <div class="qty-hint" id="qty-hint"></div>
+    <div class="qty-actions">
+      <button class="mod-btn" onclick="confirmarQty()">Aceptar (Enter)</button>
+      <button class="mod-btn" onclick="cerrarQty()">Cancelar (Esc)</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MÓDULO CONTABILIDAD (Ingresos y Egresos) ============== -->
+<div class="window hidden" id="contabilidad-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">📒</span><span class="title-text">Contabilidad</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('contabilidad-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-toolbar">
+    <button class="mod-btn" onclick="contNuevoGasto()"><span class="mod-icon">💸</span> Nuevo Gasto (F2)</button>
+    <button class="mod-btn" onclick="contImprimir()"><span class="mod-icon">🖨️</span> Imprimir Libro (F7)</button>
+    <button class="mod-btn" onclick="closeWindow('contabilidad-window')"><span class="mod-icon">🚪</span> Salir (F12)</button>
+  </div>
+  <div class="cont-kpis">
+    <div class="cont-kpi-card ingreso">
+      <div class="cont-kpi-label">Ingresos Periodo <span>🟢</span></div>
+      <div class="cont-kpi-val" id="cont-kpi-ing">$ 0,00</div>
+    </div>
+    <div class="cont-kpi-card egreso">
+      <div class="cont-kpi-label">Egresos Periodo <span>🔴</span></div>
+      <div class="cont-kpi-val" id="cont-kpi-egr">$ 0,00</div>
+    </div>
+    <div class="cont-kpi-card balance">
+      <div class="cont-kpi-label">Balance Neto <span>⭐</span></div>
+      <div class="cont-kpi-val" id="cont-kpi-bal">$ 0,00</div>
+    </div>
+  </div>
+  <div class="cont-filters">
+    <div>
+      <label>Periodo</label>
+      <select id="cont-periodo" onchange="contCambiarPeriodo()"></select>
+    </div>
+    <div id="cont-rango-row" style="display:none">
+      <label>Desde</label><input type="text" id="cont-desde" class="input-small" placeholder="dd/mm/aaaa">
+      <label>Hasta</label><input type="text" id="cont-hasta" class="input-small" placeholder="dd/mm/aaaa">
+    </div>
+    <div style="flex:1;min-width:160px">
+      <label>Buscar por concepto / categoría</label>
+      <input type="text" id="cont-search" class="input-medium" style="width:100%" placeholder="Buscar..." oninput="contBuscarTexto()">
+    </div>
+  </div>
+  <table class="grid full-grid">
+    <thead>
+      <tr><th>Fecha</th><th>Concepto / Referencia</th><th>Método</th><th>Ingreso $</th><th>Egreso $</th></tr>
+    </thead>
+    <tbody id="cont-body"></tbody>
+  </table>
+  <div class="cont-pag">
+    <span id="cont-pag-label">Página 1 de 1 | Total 0 movimientos</span>
+    <div style="display:flex;gap:8px">
+      <button id="cont-pag-prev" onclick="contPrevPage()">◀ Anterior</button>
+      <button id="cont-pag-next" onclick="contNextPage()">Siguiente ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== REGISTRAR EGRESO MANUAL (Contabilidad) ============== -->
+<div class="window hidden" id="cont-gasto-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">💸</span><span class="title-text">Registrar Egreso de Caja</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="contCerrarGasto()">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <fieldset class="panel">
+      <legend>Registro de Egreso Manual (Contabilidad)</legend>
+      <table class="form-table">
+        <tr><td><label>Categoría del Gasto:</label></td><td><select id="cont-gasto-categoria" class="input-large" style="vertical-align:middle"></select>
+            <button class="mod-btn" onclick="contAgregarCategoria()" title="Agregar categoría">➕</button>
+            <button class="mod-btn" onclick="contEliminarCategoria()" title="Eliminar categoría">🗑</button></td></tr>
+        <tr><td><label>Concepto Detallado:</label></td><td><input type="text" id="cont-gasto-concepto" class="input-large" placeholder="EJ: PAGO SEMANA JUNIO - JUAN PEREZ"></td></tr>
+        <tr>
+          <td><label>Monto:</label></td>
+          <td>
+            <input type="text" id="cont-gasto-monto" class="input-medium" inputmode="decimal" oninput="contActualizarEquivGasto()">
+            <div class="pago-usd" id="cont-gasto-usd"></div>
+          </td>
+        </tr>
+        <tr><td><label>Método de Pago:</label></td><td><select id="cont-gasto-forma" class="input-medium" onchange="contActualizarEquivGasto()"></select></td></tr>
+      </table>
+    </fieldset>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="contGuardarGasto()">✅ Confirmar Gasto y Asentar</button>
+      <button class="mod-btn" onclick="contCerrarGasto()">✖ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== AUDITORÍA DE MOVIMIENTO (Contabilidad) ============== -->
+<div class="window hidden" id="cont-detalle-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">👁️</span><span class="title-text" id="cont-det-titulo">Auditoría de Movimiento</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="contCerrarDetalle()">✕</button>
+    </div>
+  </div>
+  <div class="module-content">
+    <div class="cont-det-grid">
+      <div class="cont-det-box">
+        <label>Categoría / Origen</label>
+        <div class="valor" id="cont-det-categoria">—</div>
+      </div>
+      <div class="cont-det-box">
+        <label>Fecha / Hora Registro</label>
+        <div class="valor" id="cont-det-fecha">—</div>
+      </div>
+    </div>
+    <div class="cont-det-box" style="margin-bottom:8px">
+      <label>Concepto Detallado</label>
+      <div class="concepto" id="cont-det-concepto">—</div>
+    </div>
+    <div class="cont-det-grid">
+      <div class="cont-det-box">
+        <label>Monto en Divisas (USD)</label>
+        <div class="valor" id="cont-det-usd">—</div>
+      </div>
+      <div class="cont-det-box">
+        <label>Equivalente Bolívares</label>
+        <div class="valor" id="cont-det-bs">—</div>
+      </div>
+    </div>
+    <div class="cont-det-box" style="margin-bottom:8px">
+      <label>Método / Referencia</label>
+      <div class="valor" id="cont-det-metodo" style="font-size:12px">—</div>
+    </div>
+    <div id="cont-det-items-wrap" style="display:none;margin-bottom:8px">
+      <fieldset class="panel">
+        <legend>Desglose de Ítems</legend>
+        <table class="grid full-grid">
+          <thead><tr><th>Cant</th><th>Descripción</th><th>Total</th></tr></thead>
+          <tbody id="cont-det-items-body"></tbody>
+        </table>
+      </fieldset>
+    </div>
+    <div class="pago-actions">
+      <button class="mod-btn" onclick="contCerrarDetalle()">✅ Cerrar Auditoría</button>
+    </div>
+  </div>
+</div>
+
+<div class="window hidden" id="jarvis-config-window">
+  <div class="title-bar">
+    <div class="title-left"><span class="app-icon">🧠</span><span class="title-text">Jarvis — Configuración</span></div>
+    <div class="title-right">
+      <button class="win-btn">─</button><button class="win-btn">▢</button>
+      <button class="win-btn" onclick="closeWindow('jarvis-config-window')">✕</button>
+    </div>
+  </div>
+  <div class="module-content" style="background:#061224">
+    <div class="jarvis-config-tabs" id="jarvis-config-tabs"></div>
+    <div id="jarvis-config-bodies"></div>
+    <div class="jarvis-config-body active" data-prov="pipeline">
+      <div class="jarvis-provider-card">
+        <div class="jarvis-provider-head"><b>🧠 Motors de Descubrimiento (Discovery Engine)</b></div>
+        <div class="jarvis-stat" style="margin:4px 0">Al pulsar "Iniciando Jarvis" se ejecuta el pipeline que aprende el proyecto completo del POS.</div>
+        <div class="jarvis-pipeline" id="jarvis-pipeline"></div>
+      </div>
+      <div class="jarvis-action-row">
+        <button class="mod-btn" onclick="JarvisAPI.iniciarJarvis()">⚡ Iniciando Jarvis</button>
+        <button class="mod-btn" onclick="JarvisAPI.abrirPanel()">💬 Abrir conversación</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== JARVIS: ESPERA FLOTANTE Y PANEL ============== -->
+<div id="jarvis-orb" class="jarvis-orb" onclick="JarvisAPI.togglePanel()" title="Jarvis"></div>
+
+<div id="jarvis-panel" class="jarvis-panel hidden">
+  <div class="jarvis-panel-head">
+    <div class="jarvis-mini-orb"></div>
+    <div>
+      <div class="jarvis-name">JARVIS</div>
+      <div class="jarvis-status" id="jarvis-status">Agente inteligente del POS</div>
+    </div>
+    <div style="flex:1"></div>
+    <button class="jarvis-btn" onclick="JarvisAPI.abrirJarvisConfig()" title="Configuración">⚙</button>
+    <button class="jarvis-btn" onclick="JarvisAPI.cerrarPanel()" title="Cerrar">✕</button>
+  </div>
+  <div id="jarvis-chat" class="jarvis-chat"></div>
+  <div class="jarvis-input-row">
+    <button class="jarvis-btn mic hidden" id="jarvis-mic" onclick="JarvisAPI.alternarMic()" title="Voz">🎤</button>
+    <input type="text" id="jarvis-input" placeholder="Habla o escribe un comando... (ej. 'abre clientes', 'ver stock')">
+    <button class="jarvis-btn" onclick="JarvisAPI.enviar()">Enviar</button>
+  </div>
+</div>
+
+<script src="js/dialogs.js"></script>
+       <script src="js/storage.js"></script>
+<script src="js/data.js"></script>
+<script src="js/pos.js"></script>
+<script src="js/modules.js"></script>
+<script src="js/taller.js"></script>
+<script src="js/servicios.js"></script>
+<script src="js/caja.js"></script>
+<script src="js/creditpago.js"></script>
+<script src="js/utilidades.js"></script>
+<script src="js/windows.js"></script>
+<script src="js/roles.js"></script>
+<script src="js/contabilidad.js"></script>
+<script src="js/login.js"></script>
+<script src="js/lib/three.core.global.js"></script>
+<script src="js/jarvis-orb.js"></script>
+<script src="js/jarvis.js"></script>
+</body>
+</html>

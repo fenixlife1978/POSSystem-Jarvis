@@ -1,0 +1,35 @@
+/* Inventario */
+.inv-filters {
+  background: #ECE9D8;
+  padding: 5px 8px;
+  border-bottom: 1px solid #ccc;
+  display: flex; gap: 12px; align-items: center; font-size: 12px;
+  flex-wrap: wrap;
+}
+.inv-legend {
+  display: flex; gap: 18px; padding: 6px 12px;
+  background: #ECE9D8; font-size: 12px;
+}
+.legend-box {
+  display: inline-block; width: 12px; height: 12px;
+  border: 1px solid #999; margin-right: 4px; vertical-align: middle;
+}
+.legend-box.red { background: #d04444; }
+.legend-box.yellow { background: #f0c040; }
+.legend-box.green { background: #4caf50; }
+.row-low { background: #fff4cc; }
+.row-out { background: #fbe0e0; }
+
+/* Resumen de inventario (valor CPP y valor de venta) */
+.inv-summary {
+  background: #ECE9D8;
+  border-top: 1px solid #ccc;
+  padding: 6px 12px;
+  font-size: 12px;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+  line-height: 1.5;
+}
+.inv-summary-title { font-weight: bold; color: #003399; }

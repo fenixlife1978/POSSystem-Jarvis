@@ -1,0 +1,49 @@
+/* Cotizaciones */
+.cotiz-filters {
+  background: #ECE9D8;
+  padding: 5px 8px;
+  border-bottom: 1px solid #ccc;
+  display: flex; gap: 8px; align-items: center; font-size: 12px;
+  flex-wrap: wrap;
+}
+.cotiz-detail {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 0;
+  padding: 0 4px 4px 4px;
+}
+#cotiz-detail-grid { min-height: 200px; }
+.cotiz-totals {
+  background: #ECE9D8;
+  border: 1px solid #aaa;
+  border-left: none;
+  padding: 12px;
+  font-size: 12px;
+  display: flex; flex-direction: column; gap: 4px;
+  text-align: right;
+}
+.cotiz-total-row { color: #003399; font-size: 14px; padding-top: 6px; border-top: 1px solid #ccc;}
+.usd-sub { color: #555; font-size: 11px; font-weight: normal; }
+.obs-row {
+  display: flex; align-items: center; gap: 8px;
+  margin: 4px;
+  padding: 4px;
+}
+.obs-row label { font-size: 12px; }
+.prov-search { position: relative; }
+#cotizacion-nueva-window .prov-results,
+#cotizacion-nueva-window .prov-result {
+  position: static;
+  display: block;
+  width: 100%;
+  padding: 4px 6px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 12px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-top: none;
+  text-align: left;
+}
+#cotizacion-nueva-window .prov-result:hover { background: #dfe8ff; }
+#cotizacion-nueva-window .prov-results { display: none; border: 1px solid #888; max-height: 180px; overflow-y: auto; }

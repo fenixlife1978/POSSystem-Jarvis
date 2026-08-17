@@ -1,0 +1,262 @@
+/* ===== POS Venta - replica exacta de la imagen 1 ===== */
+.toolbar {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  background: #ECE9D8;
+  padding: 6px 8px;
+  border-bottom: 1px solid #aaa;
+}
+.tool-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: linear-gradient(to bottom, #f8f6ed 0%, #d6d3c3 100%);
+  border: 1px solid #7F9DB9;
+  padding: 3px 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: inherit;
+  border-radius: 2px;
+  gap: 2px;
+  min-height: 44px;
+}
+.tool-btn:hover { background: linear-gradient(to bottom, #fff 0%, #ece9d8 100%); border-color:#316AC5; }
+.tool-icon { font-size: 18px; line-height: 1; }
+.tool-label { font-size: 10px; }
+
+#pos-window { height: calc(100vh - 24px); }
+
+.pos-content {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "left righttop"
+    "left rightmid"
+    "left rightbottom";
+  gap: 0;
+  background: #ECE9D8;
+  padding: 4px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+.pos-left {
+  grid-area: left;
+  display: flex; flex-direction: column;
+  margin-right: 4px;
+  min-height: 0;
+}
+.pos-left fieldset.panel { flex: 0 1 auto; display: flex; flex-direction: column; min-height: 0; }
+.pos-left fieldset.panel:last-of-type { flex: 1 1 auto; }
+.pos-left .grid { flex: 1 1 auto; min-height: 80px; overflow: auto; }
+.pos-left .observaciones-row { flex: 0 0 auto; }
+
+.pos-right-top {
+  grid-area: righttop;
+  margin: 4px 4px 0 0;
+  background: white;
+  border: 1px solid #aaa;
+  padding: 8px 12px;
+  text-align: right;
+}
+.iva-line, .total-line {
+  display: flex; justify-content: space-between;
+  padding: 2px 0;
+}
+.iva-label { color: #003399; font-weight: bold; font-size: 16px; }
+.iva-value { color: #003399; font-weight: bold; font-size: 16px; }
+.total-label { color: #222; font-weight: bold; font-size: 22px; }
+.total-value { color: #008000; font-weight: bold; font-size: 24px; }
+
+.pos-right-mid {
+  grid-area: rightmid;
+  display: flex; flex-direction: column;
+  margin: 0 4px 0 0;
+}
+.btn-add-cart {
+  margin-top: 6px;
+  width: 100%;
+  background: linear-gradient(to bottom, #f8f6ed 0%, #d6d3c3 100%);
+  border: 1px solid #7F9DB9;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: bold;
+  border-radius: 2px;
+}
+.btn-add-cart:hover { background: linear-gradient(to bottom, #fff 0%, #ece9d8 100%); }
+
+.totales-table { width: 100%; border-collapse: collapse; }
+.totales-table td { padding: 3px 8px; font-size: 12px; }
+.totales-table td.num { text-align: right; }
+.totales-table tr.total-row td { color:#003399; font-size: 14px; padding-top: 6px; border-top: 1px solid #ccc;}
+
+.pos-right-bottom {
+  grid-area: rightbottom;
+  margin: 0 4px 4px 0;
+  display: flex;
+  gap: 4px;
+}
+.caja-btn-col {
+  flex: 0 0 86px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.caja-btn {
+  flex: 1 1 auto;
+  min-height: 30px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+.caja-btn.abrir { background: linear-gradient(to bottom, #2f7d32 0%, #1f5a22 100%); border-color: #14521a; }
+.caja-btn.abrir:hover { background: linear-gradient(to bottom, #3b9a3f 0%, #2f7d32 100%); }
+.caja-btn.cerrar { background: linear-gradient(to bottom, #d97706 0%, #b45309 100%); border-color: #92400e; }
+.caja-btn.cerrar:hover { background: linear-gradient(to bottom, #f59e0b 0%, #d97706 100%); }
+.cobrar-btn {
+  flex: 1 1 auto;
+  min-height: 64px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px;
+  background: linear-gradient(to bottom, #2f7d32 0%, #1f5a22 100%);
+  border: 1px solid #14521a;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.cobrar-btn:hover { background: linear-gradient(to bottom, #3b9a3f 0%, #2f7d32 100%); }
+.cobrar-btn small { font-size: 11px; font-weight: normal; color: #d8f0da; }
+.cobrar-btn small .usd-hint { color: #ffe89b; }
+
+.ultima-btn {
+  flex: 0 0 130px;
+  min-height: 64px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px;
+  background: linear-gradient(to bottom, #316AC5 0%, #0B3D91 100%);
+  border: 1px solid #082F73;
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.ultima-btn:hover { background: linear-gradient(to bottom, #5a8be6 0%, #316AC5 100%); }
+.ultima-btn small { font-size: 10px; font-weight: normal; color: #d6e2ff; }
+
+.payment-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+.pay-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: linear-gradient(to bottom, #f8f6ed 0%, #d6d3c3 100%);
+  border: 1px solid #7F9DB9;
+  padding: 6px 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: inherit;
+  border-radius: 2px;
+  gap: 4px;
+  min-height: 56px;
+}
+.pay-icon { font-size: 22px; }
+.pay-label { font-size: 11px; }
+.pay-btn:hover { background: linear-gradient(to bottom, #fff 0%, #ece9d8 100%); }
+.pay-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: linear-gradient(to bottom, #e5e5e5 0%, #c9c9c9 100%);
+  filter: grayscale(1);
+}
+.pay-btn:disabled:hover { background: linear-gradient(to bottom, #e5e5e5 0%, #c9c9c9 100%); }
+
+.usd-hint { color: #0369a1; font-size: 12px; }
+.usd-sub { color: #0369a1; font-size: 10px; }
+.total-usd { margin-left: 8px; font-size: 12px; color: #0369a1; font-weight: normal; }
+
+.saldo-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: bold;
+  border: 1px solid transparent;
+}
+.saldo-cero { color: #475569; background: #f1f5f9; border-color: #cbd5e1; }
+.saldo-favor { color: #166534; background: #dcfce7; border-color: #86efac; }
+.saldo-deudor { color: #b91c1c; background: #fee2e2; border-color: #fca5a5; }
+
+.credito-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 10px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #1e293b;
+}
+.credito-check input { width: 15px; height: 15px; cursor: pointer; accent-color: #0284c7; }
+
+#cliente-nuevo-row td { padding: 4px 0; }
+.nuevo-cliente-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #7c2d12;
+}
+.nuevo-cliente-check input { width: 15px; height: 15px; cursor: pointer; accent-color: #ea580c; }
+.nuevo-cliente-hint { margin-left: 8px; font-size: 11px; color: #78716c; }
+.cart-hint { font-size: 11px; color: #78716c; margin: 2px 2px 4px 2px; }
+.cart-hint b { color: #316AC5; }
+
+.observaciones-row {
+  display: flex; align-items: center; gap: 8px;
+  margin: 4px 4px 0 4px;
+  background: #ECE9D8;
+  padding: 4px;
+}
+.observaciones-row label { font-size: 12px; }
+
+/* ===== Quiero Pagar (calculadora USD <-> Bs.) ===== */
+.qp-hint { font-size: 12px; color: #475569; margin: 2px 4px 10px 4px; }
+.qp-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 4px 10px 4px; }
+.qp-field { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 160px; }
+.qp-field label { font-size: 12px; color: #1e293b; font-weight: bold; }
+.qp-input {
+  width: 100%; box-sizing: border-box;
+  padding: 6px 8px; font-size: 15px;
+  border: 1px solid #94a3b8; border-radius: 3px;
+  font-weight: bold; color: #0f172a;
+}
+.qp-input:focus { outline: 2px solid #316AC5; border-color: #316AC5; }
+.qp-metodo-field { margin: 0 4px 8px 4px; }
+.qp-metodo-field select { font-weight: bold; cursor: pointer; }
+.qp-faltante {
+  font-size: 12px; color: #7c2d12; font-weight: bold;
+  margin: 0 4px 10px 4px; text-align: center;
+}
+.qp-result {
+  margin: 0 4px 10px 4px;
+  background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 4px;
+  padding: 12px; text-align: center;
+}
+.qp-equiv-label { font-size: 13px; color: #1e3a8a; margin-bottom: 6px; }
+.qp-equiv-big { font-size: 34px; font-weight: bold; color: #1d4ed8; line-height: 1.1; }
+.qp-equiv-hint { font-size: 11px; color: #64748b; margin-top: 6px; }

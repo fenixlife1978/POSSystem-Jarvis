@@ -1,0 +1,329 @@
+/* ============ Estilo Windows XP / clásico de las imágenes ============ */
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: "Segoe UI", "Tahoma", "MS Sans Serif", Arial, sans-serif;
+  font-size: 12px;
+  background: linear-gradient(to bottom, #5a8ec9 0%, #3a6ea5 50%, #2c5687 100%);
+  height: 100%;
+  overflow: auto;
+}
+
+.window {
+  width: 1280px;
+  max-width: 98vw;
+  margin: 12px auto;
+  background: #ECE9D8;
+  border: 2px solid #0055EA;
+  box-shadow: 2px 2px 10px rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.window.hidden { display: none; }
+
+/* ===== Title bar (azul degradado como en la imagen) ===== */
+.title-bar {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(to bottom, #1F61D6 0%, #0B3D91 50%, #082F73 100%);
+  color: white;
+  font-weight: bold;
+  padding: 3px 4px;
+  height: 26px;
+  border-bottom: 1px solid #001a4d;
+}
+.title-left { flex: 1; display: flex; align-items: center; gap: 4px; }
+.title-center { flex: 0 0 auto; padding: 0 12px; }
+.title-mid-right { flex: 0 0 auto; padding: 0 12px; }
+.title-right { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+.app-icon { font-size: 14px; }
+.title-text { font-size: 12px; }
+
+/* Widget interactivo Tasa BCV en la barra de título */
+.bcv-widget {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 3px;
+  padding: 1px 6px;
+  margin-right: 6px;
+  font-size: 11px;
+  color: #ffffff;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.bcv-widget:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: #ffffff;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+}
+.bcv-title {
+  font-weight: normal;
+  opacity: 0.9;
+}
+.bcv-val {
+  font-weight: bold;
+  color: #ffeb3b;
+}
+.bcv-btn {
+  font-size: 10px;
+  margin-left: 2px;
+}
+
+.win-btn {
+  width: 22px; height: 20px;
+  background: linear-gradient(to bottom, #4a7bd6 0%, #2a5ab5 100%);
+  border: 1px solid #001a4d;
+  color: white;
+  font-weight: bold;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+.win-btn:hover { background: linear-gradient(to bottom, #5a8be6 0%, #3a6ac5 100%); }
+
+/* ===== Menu bar ===== */
+.menu-bar {
+  background: #ECE9D8;
+  border-bottom: 1px solid #aaa;
+  padding: 2px 6px;
+  display: flex;
+  gap: 2px;
+}
+.menu-item {
+  padding: 3px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 2px;
+}
+.menu-item:hover { background: #316AC5; color: white; }
+.menu-item.active { text-decoration: underline; }
+
+/* ===== Status bar ===== */
+.status-bar {
+  background: #ECE9D8;
+  border-top: 1px solid #aaa;
+  display: flex;
+  gap: 22px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: #222;
+}
+.status-bar b { color: #003399; }
+
+/* ===== Common fieldset/panel ===== */
+fieldset.panel {
+  border: 1px solid #aaa;
+  background: #ECE9D8;
+  margin: 4px;
+  padding: 8px 10px 10px 10px;
+  border-radius: 2px;
+}
+fieldset.panel legend {
+  padding: 0 6px;
+  font-size: 11px;
+  color: #003399;
+  font-weight: bold;
+}
+fieldset.mini-panel {
+  border: 1px solid #aaa;
+  background: white;
+  margin: 6px 4px;
+  padding: 6px 8px;
+  border-radius: 2px;
+}
+fieldset.mini-panel legend { color:#003399; font-weight:bold; font-size:11px; padding:0 4px;}
+
+/* ===== Form table ===== */
+.form-table { border-collapse: collapse; width: 100%; }
+.form-table td { padding: 3px 4px; vertical-align: middle; font-size: 12px; }
+.form-table label { color: #222; }
+
+.input-small { width: 90px; }
+.input-mini { width: 52px; }
+.input-medium { width: 150px; }
+.input-wide { width: 100%; }
+
+input[type=text], input[type=number], select {
+  border: 1px solid #7F9DB9;
+  background: white;
+  padding: 2px 4px;
+  font-family: inherit;
+  font-size: 12px;
+  height: 20px;
+  border-radius: 1px;
+}
+input[type=text]:focus, input[type=number]:focus, select:focus {
+  outline: none;
+  border-color: #316AC5;
+  box-shadow: inset 0 0 2px #316AC5;
+}
+select { height: 22px; }
+
+.btn-mini {
+  width: 22px; height: 20px;
+  background: linear-gradient(to bottom, #ECE9D8 0%, #B6B4A5 100%);
+  border: 1px solid #7F9DB9;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+/* ===== Grid (tabla) ===== */
+.grid {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: 12px;
+  border: 1px solid #aaa;
+}
+.grid th {
+  background: linear-gradient(to bottom, #ECE9D8 0%, #C0C0B0 100%);
+  border: 1px solid #aaa;
+  padding: 3px 6px;
+  text-align: left;
+  font-weight: normal;
+  color: #222;
+}
+.grid td {
+  border: 1px solid #d0d0d0;
+  padding: 2px 6px;
+  height: 20px;
+}
+.grid tr:hover { background: #e8eef7; }
+.grid tr.selected { background: #316AC5; color: white; }
+.grid tr.buscar-active { background: #316AC5; color: white; }
+.grid tr.buscar-active .usd-sub { color: #cfe0ff; }
+.full-grid { width: calc(100% - 8px); margin: 4px; }
+
+/* ===== Modal de cantidad ===== */
+.qty-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qty-overlay.hidden { display: none; }
+.qty-box {
+  background: #ECE9D8;
+  border: 2px solid #7F9DB9;
+  box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.4);
+  padding: 16px;
+  width: 420px;
+  font-family: "Segoe UI", "Tahoma", Arial, sans-serif;
+}
+.qty-title {
+  font-weight: bold;
+  color: #003399;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.qty-product {
+  font-size: 12px;
+  color: #222;
+  background: white;
+  border: 1px solid #aaa;
+  padding: 6px 8px;
+  margin-bottom: 10px;
+  min-height: 30px;
+}
+.qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.qty-row input {
+  width: 100px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  height: 34px;
+  border: 1px solid #aaa;
+  font-family: inherit;
+}
+.qty-btn {
+  width: 34px;
+  height: 34px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  background: linear-gradient(to bottom, #ECE9D8 0%, #C0C0B0 100%);
+  border: 1px solid #aaa;
+}
+.qty-btn:hover { background: linear-gradient(to bottom, #fff 0%, #d6d3c3 100%); }
+.qty-precio-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.qty-precio-row label {
+  font-size: 12px;
+  color: #222;
+  font-weight: bold;
+}
+.qty-precio-row select {
+  font-family: inherit;
+  font-size: 12px;
+  border: 1px solid #aaa;
+  height: 28px;
+  background: white;
+  max-width: 190px;
+}
+.qty-precio-row input {
+  width: 110px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  height: 28px;
+  border: 1px solid #aaa;
+  font-family: inherit;
+}
+.qty-hint { font-size: 11px; color: #444; text-align: center; margin-bottom: 12px; }
+.qty-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* ===== Generic module toolbar ===== */
+.module-toolbar {
+  background: #ECE9D8;
+  border-bottom: 1px solid #aaa;
+  display: flex;
+  gap: 2px;
+  padding: 4px 6px;
+  flex-wrap: wrap;
+}
+.mod-btn {
+  display: flex; align-items: center; gap: 4px;
+  background: linear-gradient(to bottom, #f8f6ed 0%, #d6d3c3 100%);
+  border: 1px solid #7F9DB9;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: inherit;
+  border-radius: 2px;
+}
+.mod-btn:hover { background: linear-gradient(to bottom, #fff 0%, #ece9d8 100%); }
+.mod-icon { font-size: 12px; }
+
+.module-search {
+  background: #ECE9D8;
+  padding: 5px 8px;
+  border-bottom: 1px solid #ccc;
+  display: flex; gap: 6px; align-items: center; font-size: 12px;
+}
+.task-spacer { flex: 1; }
+.module-content { padding: 4px; background: #ECE9D8; }
