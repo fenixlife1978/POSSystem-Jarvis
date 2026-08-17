@@ -817,6 +817,13 @@
       reactivar();
       return { text: "Jarvis activado. Dime, ¿en qué te ayudo?" };
     }
+    // ---- MOVER UBICACIÓN DE LA ESFERA ----
+    // "muévete a la derecha/esquina/centro" / "mueve la esfera arriba"
+    const mMove = t.match(/(?:muévete|muevete|muéveme|mueveme|mueve(?:te| la esfera| el orbe)?|cámbiate|cambiate|vete|ponte)\s+(?:a|al|para|hacia|en)?\s*(.+)/);
+    if (/(muévete|muevete|muéveme|mueveme|mueve(?:te| la esfera| el orbe)?|cámbiate|cambiate|vete)\s+(?:a|al|para|hacia|en)?\s*(esquina|arriba|abajo|izquierda|derecha|centro|medio|superior)/.test(t)) {
+      const res = moverOrbe(mMove ? mMove[1] : t);
+      return { text: res };
+    }
     return null;
   }
 
@@ -1128,6 +1135,84 @@
   }
 
   // ------------------------------------------------------------------
+  // POSICIÓN Y ARRASTRE DE LA ESFERA
+  // ------------------------------------------------------------------
+  // Guarda/lee la posición guardada (se persiste en J.cfg).
+  function aplicarPosicion() {
+    const o = elOrb();
+    if (!o || !J.cfg) return;
+    const p = J.cfg.posicion;
+    if (p) {
+      o.style.left = (p.left != null) ? p.left + "px" : "auto";
+      o.style.top = (p.top != null) ? p.top + "px" : "auto";
+      if (p.left != null) o.style.right = "auto";
+      if (p.top != null) o.style.bottom = "auto";
+    }
+  }
+  function guardarPosicion() {
+    const o = elOrb();
+    if (!o || !J.cfg) return;
+    const r = o.getBoundingClientRect();
+    J.cfg.posicion = { left: Math.round(r.left), top: Math.round(r.top) };
+    saveCfg();
+  }
+  function posicionActual() {
+    const o = elOrb();
+    if (!o) return null;
+    const r = o.getBoundingClientRect();
+    return { left: Math.round(r.left), top: Math.round(r.top) };
+  }
+  // Mueve la esfera a una esquina o a coordenadas concretas por comando.
+  function moverOrbe(objetivo) {
+    const o = elOrb();
+    if (!o || !J.cfg) return "No se pudo mover la esfera.";
+    let left = null, top = null;
+    const s = String(objetivo || "").toLowerCase();
+    if (/(esquina|derecha|right|arriba)/i.test(s)) { left = window.innerWidth - 118; top = 46; }
+    else if (/(izquierda|left)/i.test(s)) { left = 22; top = window.innerHeight - 142; }
+    else if (/(abajo|inferior|bottom)/i.test(s)) { left = window.innerWidth - 118; top = window.innerHeight - 142; }
+    else if (/(arriba izquierda|superior izquierda)/i.test(s)) { left = 22; top = 46; }
+    else if (/(centro|medio|middle)/i.test(s)) { left = Math.round(window.innerWidth / 2 - 48); top = Math.round(window.innerHeight / 2 - 48); }
+    else return "Dime a donde mover a Jarvis (arriba, abajo, izquierda, derecha, esquina o centro).";
+    J.cfg.posicion = { left: Math.round(left), top: Math.round(top) };
+    o.style.left = left + "px"; o.style.top = top + "px";
+    o.style.right = "auto"; o.style.bottom = "auto";
+    saveCfg();
+    return "Listo, me moví a la posición indicada.";
+  }
+  function arrastrarOrbe() {
+    const o = elOrb();
+    if (!o) return;
+    let startX, startY, origX, origY, dragging = false, moved = false;
+    o.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return;
+      dragging = true; moved = false;
+      startX = e.clientX; startY = e.clientY;
+      const rect = o.getBoundingClientRect();
+      origX = rect.left; origY = rect.top;
+      o.classList.add("dragging");
+      e.preventDefault();
+    });
+    document.addEventListener("mousemove", (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX, dy = e.clientY - startY;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+      if (moved) {
+        o.style.left = (origX + dx) + "px";
+        o.style.top = (origY + dy) + "px";
+        o.style.right = "auto"; o.style.bottom = "auto";
+      }
+    });
+    document.addEventListener("mouseup", () => {
+      if (!dragging) return;
+      dragging = false;
+      o.classList.remove("dragging");
+      if (!moved) { togglePanel(); return; }
+      guardarPosicion();
+    });
+  }
+
+  // ------------------------------------------------------------------
   // ABRIR / CERRAR PANEL
   // ------------------------------------------------------------------
   function abrirPanel() {
@@ -1170,6 +1255,7 @@
   // ------------------------------------------------------------------
   function init() {
     // El orbe es accesible siempre (incluso en la pantalla de login).
+    arrastrarOrbe();
     mostrarSegunRol();
     // Tras autenticarse, asegurar visibilidad y cargar estado.
     document.addEventListener("login", () => {
@@ -1194,6 +1280,7 @@
     if (!o) return;
     const tieneAcceso = (typeof rolPuedeModulo !== "function") || rolPuedeModulo("pos");
     loadState().then(() => {
+      aplicarPosicion();
       // Si está en modo manual, no mostramos el orbe.
       if (J.cfg && J.cfg.modoManual) { o.classList.add("hidden"); o.style.display = "none"; return; }
       o.classList.remove("hidden");
@@ -1233,6 +1320,7 @@
     setOffline, getOffline, guardarOffline, jarvisShowOfflineTab,
     registerProvider, dynamicProviders, alternarWake,
     mostrarVozTab, guardarVoz, probarVoz, modoManual, reactivar,
+    moverOrbe, posicionActual,
     config: CFP
   };
 
