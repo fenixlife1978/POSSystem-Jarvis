@@ -26,6 +26,8 @@ contextBridge.exposeInMainWorld("desktop", {
       del: (key) => ipcRenderer.invoke("jarvis-kv-del", key)
     },
     scan: () => ipcRenderer.invoke("jarvis-scan"),
-    ai: (cfg, model, messages, extra) => ipcRenderer.invoke("jarvis-ai", cfg, model, messages, extra)
+    ai: (cfg, model, messages, extra) => ipcRenderer.invoke("jarvis-ai", cfg, model, messages, extra),
+    aiOffline: (config, model, messages) => ipcRenderer.invoke("jarvis-ai-offline", config, model, messages),
+    checkNetwork: () => ipcRenderer.invoke("jarvis-net-check")
   }
 });

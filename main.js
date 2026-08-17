@@ -293,6 +293,44 @@ function jarvisProviderRequest(cfg, model, messages, extra) {
   });
 }
 
+// IA local offline (Ollama / LM Studio / cualquier API OpenAI-compatible local).
+// Devuelve siempre estructura { ok, status, json } para encajar con el pipeline.
+function jarvisOfflineChat(config, model, messages) {
+  const base = (config && (config.base || config.host)) || "http://127.0.0.1:11434";
+  const providers = Array.isArray(config && config.providers) ? config.providers : null;
+  const url = base.replace(/\/+$/, "") + "/v1/chat/completions";
+  return new Promise((resolve) => {
+    const lib = url.startsWith("https://") ? require("https") : require("http");
+    const body = JSON.stringify({ model, messages, stream: false, temperature: 0.4, max_tokens: 1200 });
+    const req = lib.request(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) }
+    }, (res) => {
+      let data = "";
+      res.on("data", c => { if (data.length < 8 * 1024 * 1024) data += c; });
+      res.on("end", () => {
+        try { resolve({ ok: true, status: res.statusCode, json: JSON.parse(data) }); }
+        catch (e) { resolve({ ok: false, status: res.statusCode, raw: data.slice(0, 2000) }); }
+      });
+    });
+    req.on("error", e => resolve({ ok: false, msg: String(e && e.message || e) }));
+    req.setTimeout(30000, () => { req.destroy(); resolve({ ok: false, msg: "Tiempo de espera agotado" }); });
+    req.write(body); req.end();
+  });
+}
+
+// Detección simple de conectividad (para decidir el modo offline).
+function jarvisCheckNetwork() {
+  return new Promise((resolve) => {
+    const probe = require("https").get("https://generativelanguage.googleapis.com/", {
+      timeout: 4000,
+      headers: { "Connection": "close" }
+    }, (res) => resolve({ online: true, status: res.statusCode }));
+    probe.on("error", () => resolve({ online: false }));
+    probe.on("timeout", () => { probe.destroy(); resolve({ online: false }); });
+  });
+}
+
 // Extrae el texto final de una respuesta según el formato de cada proveedor.
 function jarvisExtractText(json) {
   try {
@@ -549,6 +587,8 @@ ipcMain.handle("jarvis-kv-keys", () => jarvisKvKeys());
 ipcMain.handle("jarvis-kv-del", (_e, key) => jarvisKvDel(key));
 ipcMain.handle("jarvis-scan", () => jarvisScanProject());
 ipcMain.handle("jarvis-ai", (_e, cfg, model, messages, extra) => jarvisAIChat(cfg, model, messages, extra));
+ipcMain.handle("jarvis-ai-offline", (_e, config, model, messages) => jarvisOfflineChat(config, model, messages));
+ipcMain.handle("jarvis-net-check", () => jarvisCheckNetwork());
 
 // ---------------------------------------------------------------------------
 // CICLO DE VIDA

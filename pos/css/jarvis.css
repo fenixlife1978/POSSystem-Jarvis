@@ -141,3 +141,20 @@
 .jarvis-action-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .jarvis-action-row .mod-btn { font-size: 12px; }
 .jarvis-config-window .module-content { background: #061224; color: #dce9ff; }
+
+/* ---------- Bento UI (payloads visuales) ---------- */
+.jarvis-bento { background: linear-gradient(160deg,#0c1f3d,#081426); border: 1px solid #1e4370; border-radius: 12px; padding: 10px 12px; margin: 6px 0 10px; box-shadow: inset 0 0 12px rgba(70,150,255,.10); }
+.jarvis-bento-title { color:#ffd97a; font-size:13px; font-weight:600; margin-bottom:8px; }
+.jarvis-bento-table { width:100%; border-collapse:collapse; font-size:12px; color:#cfe4ff; }
+.jarvis-bento-table th { text-align:left; padding:6px 7px; background:#123252; color:#9fd0ff; border-bottom:1px solid #1f4a7a; }
+.jarvis-bento-table td { padding:5px 7px; border-bottom:1px solid #122c4a; }
+.jarvis-bento-table tr:last-child td { border-bottom:none; }
+.jarvis-bento-bars { display:flex; flex-direction:column; gap:6px; }
+.jb-bar { display:flex; align-items:center; gap:8px; font-size:12px; color:#cfe4ff; }
+.jb-bar-label { width:110px; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#9fd0ff; }
+.jb-bar-track { flex:1; height:14px; background:#0f2440; border-radius:7px; overflow:hidden; }
+.jb-bar-fill { height:100%; background:linear-gradient(90deg,#1d4f9e,#3fa9ff); border-radius:7px; transition:width .4s; }
+.jb-bar-val { width:60px; color:#ffd97a; }
+.jarvis-bento-modal { display:flex; flex-direction:column; gap:6px; }
+.jb-field { display:flex; justify-content:space-between; gap:8px; font-size:12px; color:#cfe4ff; border-bottom:1px dashed #16335b; padding:4px 0; }
+.jb-field b { color:#9fd0ff; }
