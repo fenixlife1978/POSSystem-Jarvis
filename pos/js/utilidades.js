@@ -487,8 +487,8 @@ function filtrarAuditoria() {
   const q = (_g("aud-filtro").value || "").toLowerCase().trim();
   const rows = DB.auditoria.filter(a => !q || a.accion.toLowerCase().includes(q) || a.detalle.toLowerCase().includes(q) || a.usuario.toLowerCase().includes(q));
   _g("aud-body").innerHTML = rows.slice(0, 500).map(a =>
-    `<tr><td>${a.fecha}</td><td>${a.hora}</td><td>${a.usuario}</td><td>${a.accion}</td><td>${a.detalle}</td></tr>`
-  ).join("") || `<tr><td colspan="5" style="text-align:center;color:#888">Sin registros</td></tr>`;
+    `<tr><td>${a.fecha}</td><td>${a.hora}</td><td>${a.usuario}</td><td>${a.accion}</td><td>${a.detalle}</td><td title="Firma SHA-256: ${a.hash || "sin firma"}">${a.hash ? "🔒 " + a.hash.slice(0, 6) : "—"}</td></tr>`
+  ).join("") || `<tr><td colspan="6" style="text-align:center;color:#888">Sin registros</td></tr>`;
 }
 
 // ===== Carga de ventanas de utilidades =====

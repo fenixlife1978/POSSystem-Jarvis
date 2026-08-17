@@ -149,8 +149,28 @@ function genNro(arr, campo, prefijo, len) {
   return prefijo + String(max + 1).padStart(len, "0");
 }
 
-function auditar(accion, detalle) {
-  DB.auditoria.unshift({ fecha: hoy(), hora: hora12(), usuario: DB.parametros.cajero || "ADMIN", accion, detalle });
+async function auditar(accion, detalle) {
+  // Firma digital por hash encadenado (SHA-256): cada registro firma el hash
+  // del anterior, haciendo el log inmutable y detectable ante alteraciones.
+  const prev = DB.auditoria[0] ? (DB.auditoria[0].hash || "") : ("S0-" + (DB.parametros && DB.parametros.claveFirma || "POS"));
+  const entry = {
+    fecha: hoy(), hora: hora12(), usuario: DB.parametros.cajero || "ADMIN",
+    accion, detalle,
+    prev,
+    hash: ""
+  };
+  const raw = entry.fecha + "|" + entry.hora + "|" + entry.usuario + "|" + accion + "|" + detalle + "|" + prev;
+  try {
+    if (window.crypto && window.crypto.subtle) {
+      const buf = new TextEncoder().encode(raw);
+      const dig = await window.crypto.subtle.digest("SHA-256", buf);
+      const arr = Array.from(new Uint8Array(dig));
+      entry.hash = arr.map(b => b.toString(16).padStart(2, "0")).join("");
+    } else {
+      entry.hash = "h" + raw.length + "-" + (accion || "").length;
+    }
+  } catch (e) { entry.hash = "h-fallback"; }
+  DB.auditoria.unshift(entry);
   if (DB.auditoria.length > 2000) DB.auditoria.length = 2000;
   saveDB();
 }

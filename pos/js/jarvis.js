@@ -18,6 +18,8 @@
   let CACHE = null;                       // caché semántica en memoria
   const SUSP = new Map();                 // circuit breaker: modelo -> hasta (ms)
   let OFFLINE = null;                     // config de modelos locales (Ollama)
+  const DYN_PROVIDERS = new Map();        // proveedores dinámicos (registerProvider)
+  const DYN_MODELS = {};                  // modelos dinámicos por proveedor
 
   // Configuración por defecto en memoria (se persiste en SQLite)
   const CFP = "jarvis_config";
@@ -195,6 +197,8 @@
     if (!tabs) return;
     tabs.innerHTML = PROVIDERS.map(p =>
       `<div class="tab ${(J.cfg && J.cfg.activo === p.id) ? "active" : ""}" data-prov="${p.id}" onclick="JarvisAPI.setProveedor('${p.id}')">${p.icon} ${p.label}</div>`
+    ).join("") + dynamicProviders().map(p =>
+      `<div class="tab ${(J.cfg && J.cfg.activo === p.id) ? "active" : ""}" data-prov="${p.id}" onclick="JarvisAPI.setProveedor('${p.id}')">${p.icon} ${p.label}</div>`
     ).join("");
     const bodies = $("jarvis-config-bodies");
     if (bodies) bodies.innerHTML = PROVIDERS.map(p => {
@@ -213,8 +217,31 @@
           </div>
         </div>
       </div>`;
+    }).join("") + dynamicProviders().map(p => {
+      const pc = (J.cfg && J.cfg.proveedores && J.cfg.proveedores[p.id]) || {};
+      return `<div class="jarvis-config-body" data-prov="${p.id}">
+        <div class="jarvis-provider-card">
+          <div class="jarvis-provider-head"><b>${p.icon} ${p.label}</b> <span class="jarvis-stat">${pc.apiKey ? "✓ key guardada" : "sin key"}</span></div>
+          <div class="jarvis-stat" style="margin:4px 0">${p.desc} <br>Endpoint: <code>${p.base}</code></div>
+          <label>API Key</label>
+          <input type="password" class="input-medium" id="jarvis-key-${p.id}" placeholder="sk-..." value="" autocomplete="off">
+          <label>Modelo (opcional)</label>
+          <select class="input-medium" id="jarvis-model-${p.id}" onchange="JarvisAPI.onModel('${p.id}')">
+            <option value="">— automático —</option>
+            ${(DYN_MODELS[p.id] || []).map(m => `<option value="${m.model}">${m.model}${m.free ? " (gratis)" : ""}</option>`).join("")}
+          </select>
+          <div class="jarvis-action-row">
+            <button class="mod-btn" onclick="JarvisAPI.guardarKey('${p.id}')">💾 Guardar API Key</button>
+          </div>
+        </div>
+      </div>`;
     }).join("");
     PROVIDERS.forEach(p => { const s = $("jarvis-model-" + p.id); if (s) llenarModelos(s, p.id); });
+    dynamicProviders().forEach(p => {
+      const s = $("jarvis-model-" + p.id);
+      const pc = (J.cfg && J.cfg.proveedores && J.cfg.proveedores[p.id]) || {};
+      if (s && pc.model) s.value = pc.model;
+    });
     // Pestaña de modo local / offline (Ollama, LM Studio)
     const off = (J.cfg && J.cfg.offline) || {};
     tabs.innerHTML += `<div class="tab" data-prov="offline" onclick="JarvisAPI.jarvisShowOfflineTab()">🖥 Local / offline</div>`;
@@ -435,6 +462,9 @@
     cand.push({ provider: prov, model: manual, custom: true });
     const lista = FREE_MODELS[prov] || [];
     lista.forEach(m => cand.push({ provider: prov, model: m.model }));
+    // Modelos dinámicos registrados en runtime (registerProvider).
+    const dm = DYN_MODELS[prov] || [];
+    dm.forEach(m => cand.push({ provider: prov, model: m.model }));
     return cand.filter(c => c.model);
   }
 
@@ -446,7 +476,10 @@
   async function chat(messages, extra) {
     if (!kvOk()) return { ok: false, msg: "Sin entorno de escritorio." };
     const provId = J.cfg && J.cfg.activo;
-    const provCfg = J.cfg && J.cfg.proveedores && J.cfg.proveedores[provId];
+    let provCfg = J.cfg && J.cfg.proveedores && J.cfg.proveedores[provId];
+    // Si el proveedor activo es dinámico, se completa con base/headers del registro.
+    const dynCfg = dynamicProviderCfg(provId);
+    if (dynCfg) provCfg = Object.assign({}, provCfg || {}, dynCfg);
     if (!provCfg || !provCfg.apiKey) return { ok: false, msg: "Configure una API key para el proveedor activo." };
     const cand = listaModelos();
     if (!cand.length) return { ok: false, msg: "Sin modelos configurados." };
@@ -500,6 +533,54 @@
   function cargarOffline() {
     const off = J.cfg && J.cfg.offline;
     OFFLINE = (off && off.host) ? off : null;
+  }
+
+  // ------------------------------------------------------------------
+  // REGISTRO DINÁMICO DE PROVEEDORES (registerProvider)
+  // Permite agregar cualquier proveedor con API REST en tiempo de ejecución
+  // sin reiniciar el sistema. Ej.:
+  //   JarvisAPI.registerProvider({
+  //     id: "mi-ia", label: "Mi IA", icon: "🔌",
+  //     base: "https://api.miia.com/v1/chat/completions",
+  //     models: ["modelo-a", "modelo-b"], needsKey: true
+  //   });
+  // ------------------------------------------------------------------
+  function registerProvider(def) {
+    if (!def || !def.id || !def.base) return { ok: false, msg: "Faltan id y base." };
+    const id = String(def.id).trim();
+    DYN_PROVIDERS.set(id, {
+      id,
+      label: def.label || id,
+      icon: def.icon || "🔌",
+      desc: def.desc || "Proveedor registrado en tiempo de ejecución.",
+      base: def.base,
+      headerKey: def.headerKey || "Authorization",
+      headerValue: def.headerValue || null,
+      prefix: def.prefix || "Bearer ",
+      needsKey: def.needsKey !== false,
+      free: !!def.free,
+      provider: def.provider || "custom"
+    });
+    const models = (Array.isArray(def.models) ? def.models : []).map(m =>
+      typeof m === "string" ? { model: m, free: !!def.free } : m);
+    DYN_MODELS[id] = models;
+    // Se integra con el router y la UI de configuración.
+    if (def.activo !== false && !(J.cfg && J.cfg.activo)) {
+      if (!J.cfg) J.cfg = { proveedores: [], activo: id, voz: true, nombre: "Jarvis" };
+      J.cfg.activo = id;
+    }
+    saveCfg();
+    return { ok: true, id };
+  }
+
+  function dynamicProviders() {
+    return Array.from(DYN_PROVIDERS.values());
+  }
+
+  function dynamicProviderCfg(id) {
+    const p = DYN_PROVIDERS.get(id);
+    if (!p) return null;
+    return { base: p.base, headerKey: p.headerKey, headerValue: p.headerValue, prefix: p.prefix, provider: p.provider };
   }
 
   function extraerTexto(json) {
@@ -682,6 +763,73 @@
   function guardarMemCache() { if (kvOk()) window.desktop.jarvis.config.set(CPM, J.memoria.slice(-80)); }
 
   // ------------------------------------------------------------------
+  // WAKE WORD — activación por voz ("Oye Jarvis") sin tocar botones.
+  // Usa SpeechRecognition en escucha continua; al detectar la palabra de
+  // activación abre el panel y empieza a escuchar el comando.
+  // ------------------------------------------------------------------
+  let WW = null;             // recognizer del wake word
+  let WWIntent = null;       // recognizer del comando tras la activación
+  function wakeSupported() {
+    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  }
+  function alternarWake() {
+    if (WW && WW.activo) { detenerWake(); return; }
+    if (!wakeSupported()) { addMsg("Reconocimiento de voz no disponible en este navegador.", "err"); return; }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const ww = new SR();
+    WW = ww;
+    ww.lang = "es-ES";
+    ww.interimResults = true;
+    ww.continuous = true;
+    ww.onstart = () => { WW.activo = true; actualizarBtnWake(true); addMsg("🎙 Escuchando 'Oye Jarvis'...", "sys"); };
+    ww.onresult = (ev) => {
+      let t = "";
+      for (let i = 0; i < ev.results.length; i++) t += ev.results[i][0].transcript;
+      t = t.toLowerCase();
+      // Detecta "oye jarvis" / "jarvis" (con o sin acento).
+      if (/(oye|hey|hola)?\s*j[aá]rvis/.test(t)) {
+        try { ww.stop(); } catch (e) {}
+        abrirPanel();
+        addMsg("🎙 Sí, dime. Escuchando tu petición...", "sys");
+        iniciarEscuchaComando();
+      }
+    };
+    ww.onerror = () => { detenerWake(); if (ev && ev.error === "not-allowed") addMsg("Sin permiso de micrófono para el wake word.", "err"); };
+    ww.onend = () => { WW.activo = false; actualizarBtnWake(false); WW = null; };
+    try { ww.start(); } catch (e) { detenerWake(); }
+  }
+  function detenerWake() {
+    if (WW) { try { WW.stop(); } catch (e) {} WW = null; }
+    actualizarBtnWake(false);
+  }
+  function iniciarEscuchaComando() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return;
+    const rec = new SR();
+    WWIntent = rec;
+    rec.lang = "es-ES";
+    rec.interimResults = false;
+    rec.continuous = false;
+    rec.onstart = () => { setOrb("listening"); };
+    rec.onresult = (ev) => {
+      let t = "";
+      for (let i = 0; i < ev.results.length; i++) t += ev.results[i][0].transcript;
+      const inp = $("jarvis-input");
+      if (inp) inp.value = t.trim();
+      setOrb("");
+      setTimeout(() => { enviar(); }, 300);
+    };
+    rec.onerror = () => { setOrb(""); };
+    rec.onend = () => { setOrb(""); WWIntent = null; };
+    try { rec.start(); } catch (e) { setOrb(""); }
+  }
+  function actualizarBtnWake(on) {
+    const b = $("jarvis-wake");
+    if (b) { b.classList.toggle("active", on); b.textContent = on ? "🎙 ..." : "🔊 Wake"; }
+  }
+
+
+  // ------------------------------------------------------------------
   // BENTO UI — despliega modales, tablas y gráficos en el frontend a
   // partir de payloads estructurados.
   // ------------------------------------------------------------------
@@ -753,10 +901,11 @@
   // ------------------------------------------------------------------
   function iniciarVozUI() {
     const btn = $("jarvis-mic");
-    if (!btn) return;
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { btn.disabled = true; btn.title = "Voz no disponible en este navegador"; return; }
-    btn.classList.remove("hidden");
+    if (!SR) { if (btn) btn.disabled = true; const wb = $("jarvis-wake"); if (wb) wb.disabled = true; return; }
+    if (btn) btn.classList.remove("hidden");
+    const wb = $("jarvis-wake");
+    if (wb) wb.classList.remove("hidden");
   }
 
   function alternarMic() {
@@ -871,6 +1020,7 @@
     iniciarJarvis, abrirJarvisConfig, abrirPanel, togglePanel, cerrarPanel,
     enviar, setProveedor, onModel, guardarKey, alternarMic,
     setOffline, getOffline, guardarOffline, jarvisShowOfflineTab,
+    registerProvider, dynamicProviders, alternarWake,
     config: CFP
   };
 
