@@ -27,6 +27,7 @@
 
   let currentColor = colors.default.clone();
   let targetColor = colors.default.clone();
+  let baseScale = 1;
 
   // === PARTICLE SPHERE FACTORY (idéntico al archivo limpio) ===
   function createParticleSphere(count, radius, size, jitter) {
@@ -203,7 +204,8 @@
     camera.aspect = w / h;
     // Ajuste para que la esfera (radio exterior ~115) llene el orbe.
     const s = (Math.min(w, h)) / 240;
-    jarvisGroup.scale.setScalar(s);
+    baseScale = s;
+    jarvisGroup.scale.setScalar(baseScale);
     camera.position.z = 240 * s;
     camera.updateProjectionMatrix();
   }
@@ -272,12 +274,19 @@
     core.rotation.x += 0.004;
     core.rotation.y += 0.006;
 
-    // Efecto de pulso.
-    const pulseFactor = Math.sin(time * 3) * 0.05 + 1;
+    // Efecto de pulso (expansión/contracción constante).
+    const pulseFactor = Math.sin(time * 3) * 0.14 + 1;
     innerSphere.scale.set(pulseFactor, pulseFactor, pulseFactor);
 
-    const pulseOuter = Math.cos(time * 2) * 0.03 + 1;
+    const midPulse = Math.cos(time * 2.5) * 0.10 + 1;
+    midSphere.scale.set(midPulse, midPulse, midPulse);
+
+    const pulseOuter = Math.cos(time * 2) * 0.09 + 1;
     outerSphere.scale.set(pulseOuter, pulseOuter, pulseOuter);
+
+    // Respiración global de la esfera (expande y contrae de forma constante).
+    const breath = Math.sin(time * 1.2) * 0.06 + 1;
+    jarvisGroup.scale.setScalar(baseScale * breath);
 
     renderer.render(scene, camera);
   }
