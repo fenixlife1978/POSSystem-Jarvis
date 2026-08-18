@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J.A.R.V.I.S. Core</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { margin: 0; overflow: hidden; background-color: #050200; }
+        #canvas-container { width: 100vw; height: 100vh; }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.z = 240;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        const jarvisGroup = new THREE.Group();
+        scene.add(jarvisGroup);
+
+        // === COLOR SYSTEM ===
+        const colors = {
+            default: new THREE.Color(0x00a8ff),
+            processing: new THREE.Color(0xffaa00),
+            scanning: new THREE.Color(0x00ffff),
+            innerCore: new THREE.Color(0x00ddff),
+            midLayer: new THREE.Color(0x0088ff),
+            outerLayer: new THREE.Color(0x0055cc)
+        };
+
+        let currentColor = colors.default.clone();
+        let targetColor = colors.default.clone();
+
+        // === PARTICLE SPHERE FACTORY ===
+        function createParticleSphere(count, radius, size, jitter) {
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const originalPositions = new Float32Array(count * 3);
+            const velocities = new Float32Array(count * 3);
+
+            for (let i = 0; i < count; i++) {
+                const u = Math.random();
+                const v = Math.random();
+                const theta = u * 2.0 * Math.PI;
+                const phi = Math.acos(2.0 * v - 1.0);
+                const r = radius + (Math.random() - 0.5) * jitter;
+
+                const x = r * Math.sin(phi) * Math.cos(theta);
+                const y = r * Math.sin(phi) * Math.sin(theta);
+                const z = r * Math.cos(phi);
+
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y;
+                positions[i * 3 + 2] = z;
+
+                originalPositions[i * 3] = x;
+                originalPositions[i * 3 + 1] = y;
+                originalPositions[i * 3 + 2] = z;
+
+                velocities[i * 3] = (Math.random() - 0.5) * 0.01;
+                velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.01;
+                velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.01;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const material = new THREE.PointsMaterial({
+                color: 0x00aaff,
+                size: size,
+                transparent: true,
+                opacity: 0.85,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            const points = new THREE.Points(geometry, material);
+            points.userData = { 
+                originalPositions: originalPositions, 
+                velocities: velocities,
+                radius: radius
+            };
+            return points;
+        }
+
+        const innerSphere = createParticleSphere(3500, 50, 1.4, 8);
+        const midSphere = createParticleSphere(5000, 85, 1.2, 12);
+        const outerSphere = createParticleSphere(6500, 115, 1.0, 15);
+
+        jarvisGroup.add(innerSphere);
+        jarvisGroup.add(midSphere);
+        jarvisGroup.add(outerSphere);
+
+        // === SYNAPTIC NETWORK ===
+        const nodeCount = 120;
+        const nodeGeometry = new THREE.BufferGeometry();
+        const nodePositions = new Float32Array(nodeCount * 3);
+        const nodeOriginalPositions = new Float32Array(nodeCount * 3);
+        const nodeRadius = 80;
+
+        for (let i = 0; i < nodeCount; i++) {
+            const u = Math.random();
+            const v = Math.random();
+            const theta = u * 2.0 * Math.PI;
+            const phi = Math.acos(2.0 * v - 1.0);
+
+            const x = nodeRadius * Math.sin(phi) * Math.cos(theta);
+            const y = nodeRadius * Math.sin(phi) * Math.sin(theta);
+            const z = nodeRadius * Math.cos(phi);
+
+            nodePositions[i * 3] = x;
+            nodePositions[i * 3 + 1] = y;
+            nodePositions[i * 3 + 2] = z;
+            nodeOriginalPositions[i * 3] = x;
+            nodeOriginalPositions[i * 3 + 1] = y;
+            nodeOriginalPositions[i * 3 + 2] = z;
+        }
+
+        nodeGeometry.setAttribute('position', new THREE.BufferAttribute(nodePositions, 3));
+
+        const linePositions = [];
+        const maxDistance = 45;
+
+        for (let i = 0; i < nodeCount; i++) {
+            for (let j = i + 1; j < nodeCount; j++) {
+                const dx = nodePositions[i * 3] - nodePositions[j * 3];
+                const dy = nodePositions[i * 3 + 1] - nodePositions[j * 3 + 1];
+                const dz = nodePositions[i * 3 + 2] - nodePositions[j * 3 + 2];
+                const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+                if (dist < maxDistance) {
+                    linePositions.push(
+                        nodePositions[i * 3], nodePositions[i * 3 + 1], nodePositions[i * 3 + 2],
+                        nodePositions[j * 3], nodePositions[j * 3 + 1], nodePositions[j * 3 + 2]
+                    );
+                }
+            }
+        }
+
+        const linesGeometry = new THREE.BufferGeometry();
+        linesGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+
+        const linesMaterial = new THREE.LineBasicMaterial({
+            color: 0x00aaff,
+            transparent: true,
+            opacity: 0.4,
+            blending: THREE.AdditiveBlending
+        });
+
+        const synapticNetwork = new THREE.LineSegments(linesGeometry, linesMaterial);
+        jarvisGroup.add(synapticNetwork);
+
+        // === INNER CORE ===
+        const coreGeometry = new THREE.IcosahedronGeometry(15, 2);
+        const coreMaterial = new THREE.MeshBasicMaterial({
+            color: 0x00ddff,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.2
+        });
+        const core = new THREE.Mesh(coreGeometry, coreMaterial);
+        jarvisGroup.add(core);
+
+        // === INTERACTION SYSTEM ===
+        let mouseX = 0, mouseY = 0;
+        let targetX = 0, targetY = 0;
+        let isDragging = false;
+        let previousMouseX = 0, previousMouseY = 0;
+        let burstActive = false;
+        let clock = new THREE.Clock();
+
+        const windowHalfX = window.innerWidth / 2;
+        const windowHalfY = window.innerHeight / 2;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX - windowHalfX);
+            mouseY = (event.clientY - windowHalfY);
+            
+            if (!isDragging) {
+                targetX = mouseX * 0.0008;
+                targetY = mouseY * 0.0008;
+            }
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            previousMouseX = e.clientX;
+            previousMouseY = e.clientY;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        document.addEventListener('click', () => {
+            triggerColorChange(colors.processing);
+            setTimeout(() => { triggerColorChange(colors.default); }, 2000);
+        });
+
+        document.addEventListener('dblclick', () => {
+            triggerColorChange(colors.scanning);
+            burstActive = true;
+            setTimeout(() => { burstActive = false; }, 2500);
+            setTimeout(() => { triggerColorChange(colors.default); }, 3000);
+        });
+
+        document.addEventListener('wheel', (e) => {
+            camera.position.z += e.deltaY * 0.3;
+            camera.position.z = Math.max(100, Math.min(500, camera.position.z));
+        });
+
+        function triggerColorChange(color) {
+            targetColor = color;
+        }
+
+        // === ANIMATION LOOP ===
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = clock.getElapsedTime();
+
+            // Smooth color transition
+            currentColor.lerp(targetColor, 0.03);
+
+            // Update colors
+            innerSphere.material.color.copy(currentColor);
+            midSphere.material.color.lerp(currentColor, 0.5);
+            outerSphere.material.color.lerp(colors.outerLayer, 0.3);
+            linesMaterial.color.copy(currentColor);
+            coreMaterial.color.copy(currentColor);
+
+            // Particle organic movement
+            updateParticleSphere(innerSphere, time, 0.02);
+            updateParticleSphere(midSphere, time, 0.015);
+            updateParticleSphere(outerSphere, time, 0.01);
+
+            // Rotation speeds
+            if (!isDragging) {
+                innerSphere.rotation.y += 0.008;
+                innerSphere.rotation.x += 0.003;
+
+                midSphere.rotation.y -= 0.004;
+                midSphere.rotation.z += 0.002;
+
+                outerSphere.rotation.y += 0.002;
+                outerSphere.rotation.x -= 0.003;
+            }
+
+            synapticNetwork.rotation.y += 0.005;
+            synapticNetwork.rotation.x += 0.002;
+
+            core.rotation.x += 0.004;
+            core.rotation.y += 0.006;
+
+            // Pulse effect
+            const pulseFactor = Math.sin(time * 3) * 0.05 + 1;
+            const burstScale = burstActive ? 1 + Math.sin(time * 12) * 0.08 : 1;
+            innerSphere.scale.set(pulseFactor * burstScale, pulseFactor * burstScale, pulseFactor * burstScale);
+
+            const pulseOuter = Math.cos(time * 2) * 0.03 + 1;
+            outerSphere.scale.set(pulseOuter * burstScale, pulseOuter * burstScale, pulseOuter * burstScale);
+
+            // Group rotation
+            if (isDragging) {
+                const deltaX = (mouseX - previousMouseX) * 0.003;
+                const deltaY = (mouseY - previousMouseY) * 0.003;
+                jarvisGroup.rotation.y += deltaX;
+                jarvisGroup.rotation.x += deltaY;
+                previousMouseX = mouseX;
+                previousMouseY = mouseY;
+            } else {
+                jarvisGroup.rotation.y += 0.03 * (targetX - jarvisGroup.rotation.y * 0.5);
+                jarvisGroup.rotation.x += 0.03 * (targetY - jarvisGroup.rotation.x * 0.5);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function updateParticleSphere(sphere, time, speed) {
+            const positions = sphere.geometry.getAttribute('position');
+            const original = sphere.userData.originalPositions;
+            const velocities = sphere.userData.velocities;
+            const count = positions.count;
+
+            for (let i = 0; i < count; i++) {
+                const i3 = i * 3;
+                
+                const wave = Math.sin(time * speed * 100 + i * 0.01);
+                const wave2 = Math.cos(time * speed * 80 + i * 0.015);
+                const wave3 = Math.sin(time * speed * 120 + i * 0.008);
+                const expand = Math.sin(time * 2 + i * 0.005) * 0.3;
+                
+                positions.array[i3] = original[i3] + wave * 0.5 + velocities[i3] * time * 20 + expand;
+                positions.array[i3 + 1] = original[i3 + 1] + wave2 * 0.5 + velocities[i3 + 1] * time * 20 + expand;
+                positions.array[i3 + 2] = original[i3 + 2] + wave3 * 0.5 + velocities[i3 + 2] * time * 20 + expand;
+            }
+            positions.needsUpdate = true;
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
