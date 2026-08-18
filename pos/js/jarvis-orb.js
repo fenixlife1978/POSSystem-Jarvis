@@ -15,14 +15,14 @@
   let renderer, scene, camera;
   let jarvisGroup;
 
-  // === COLOR SYSTEM (idéntico al archivo limpio) ===
+  // === COLOR SYSTEM (paleta dorado/naranja estilo Iron Man) ===
   const colors = {
-    default: new THREE.Color(0x00a8ff),
+    default: new THREE.Color(0xffd700),
     processing: new THREE.Color(0xffaa00),
-    scanning: new THREE.Color(0x00ffff),
-    innerCore: new THREE.Color(0x00ddff),
-    midLayer: new THREE.Color(0x0088ff),
-    outerLayer: new THREE.Color(0x0055cc)
+    scanning: new THREE.Color(0xff4400),
+    innerCore: new THREE.Color(0xffd700),
+    midLayer: new THREE.Color(0xffaa00),
+    outerLayer: new THREE.Color(0xff4400)
   };
 
   let currentColor = colors.default.clone();
@@ -63,7 +63,7 @@
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
     const material = new THREE.PointsMaterial({
-      color: 0x00aaff,
+      color: 0xffd700,
       size: size,
       transparent: true,
       opacity: 0.85,
@@ -147,7 +147,7 @@
     linesGeometry.setAttribute("position", new THREE.Float32BufferAttribute(linePositions, 3));
 
     const linesMaterial = new THREE.LineBasicMaterial({
-      color: 0x00aaff,
+      color: 0xffaa00,
       transparent: true,
       opacity: 0.4,
       blending: THREE.AdditiveBlending
@@ -161,7 +161,7 @@
     // === INNER CORE (idéntico al archivo limpio) ===
     const coreGeometry = new THREE.IcosahedronGeometry(15, 2);
     const coreMaterial = new THREE.MeshBasicMaterial({
-      color: 0x00ddff,
+      color: 0xffd700,
       wireframe: true,
       transparent: true,
       opacity: 0.2
