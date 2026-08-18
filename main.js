@@ -8,6 +8,18 @@ const net = require("net");
 app.setName("POSsystem pro");
 
 // ---------------------------------------------------------------------------
+// HARDWARE ACCELERATION — Electron empaquetado bloquea WebGL sin esto.
+// Asegura que la esfera Three.js (jarvis-orb) se renderice en el .exe.
+// ---------------------------------------------------------------------------
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-zero-copy');
+app.commandLine.appendSwitch('enable-hardware-overlays', 'single-fullscreen,underlay');
+app.commandLine.appendSwitch('enable-webgl');
+app.commandLine.appendSwitch('enable-webgl2');
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
+app.commandLine.appendSwitch('enable-accelerated-2d-canvas');
+
+// ---------------------------------------------------------------------------
 // ALMACENAMIENTO: archivo SQLite .db real en disco.
 // Se usa sql.js (SQLite compilado a WASM): corre en el proceso main sin
 // necesidad de compilar binarios nativos (mejor-sqlite3 necesitaba rebuild

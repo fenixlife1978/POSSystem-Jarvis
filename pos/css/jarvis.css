@@ -17,14 +17,60 @@
   user-select: none;
   transition: transform .18s ease, left .15s ease, top .15s ease;
   pointer-events: auto;
-  /* SIN fondo: el canvas Three.js es transparente (alpha:true); las
-     partículas flotan sobre el POS, como en jarvis-sphere-clean.html. */
-  background: transparent;
+  /* Halo oscuro de contraste: garantiza visibilidad sobre fondos claros.
+     El canvas Three.js (alpha:true) se superpone sobre este fondo. */
+  background: radial-gradient(circle at 50% 50%,
+    rgba(10, 26, 58, 0.72) 0%,
+    rgba(5, 12, 30, 0.88) 45%,
+    rgba(0, 0, 0, 0.95) 100%);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px rgba(100, 160, 255, 0.18),
+    0 0 18px rgba(0, 0, 0, 0.7),
+    0 0 40px rgba(0, 0, 0, 0.4);
 }
 #jarvis-orb.dragging { cursor: grabbing; transition: none; }
 #jarvis-orb:hover { transform: scale(1.08); }
 #jarvis-orb.hidden { display: none; }
-#jarvis-orb canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 160px !important; height: 160px !important; }
+#jarvis-orb canvas {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 160px !important; height: 160px !important;
+}
+
+/* ---------- Fallback CSS cuando WebGL no está disponible ---------- */
+.jarvis-orb-fallback {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%,
+    #ffe566 0%,
+    #ffaa00 30%,
+    #ff5500 65%,
+    #cc2200 100%);
+  box-shadow:
+    0 0 18px 4px rgba(255, 170, 0, 0.6),
+    0 0 40px 10px rgba(255, 100, 0, 0.3),
+    inset 0 0 20px rgba(255, 255, 200, 0.3);
+  animation: jarvis-fallback-pulse 2.4s ease-in-out infinite;
+}
+/* Fallback states */
+#jarvis-orb.jarvis-listening .jarvis-orb-fallback {
+  background: radial-gradient(circle at 38% 32%, #ffe566 0%, #ffcc00 30%, #ff8800 65%, #cc5500 100%);
+  box-shadow: 0 0 20px 5px rgba(255, 200, 0, .7), 0 0 45px 12px rgba(255, 140, 0, .4), inset 0 0 22px rgba(255,255,200,.35);
+}
+#jarvis-orb.jarvis-thinking .jarvis-orb-fallback {
+  background: radial-gradient(circle at 38% 32%, #ff8833 0%, #ff4400 30%, #cc2200 65%, #881100 100%);
+  box-shadow: 0 0 22px 6px rgba(255, 80, 0, .75), 0 0 50px 14px rgba(200, 30, 0, .45), inset 0 0 24px rgba(255,180,100,.35);
+  animation: jarvis-fallback-pulse 1.5s ease-in-out infinite;
+}
+@keyframes jarvis-fallback-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.08); }
+}
 
 /* ---------- Panel de conversación ---------- */
 #jarvis-panel {
