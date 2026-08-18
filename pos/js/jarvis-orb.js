@@ -70,10 +70,9 @@
       color: 0xffd700,
       size: size,
       transparent: true,
-      opacity: 0.9,         // opacity ligeramente aumentado para más nitidez
+      opacity: 0.85,
       blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      sizeAttenuation: true
+      depthWrite: false
     });
 
     const points = new THREE.Points(geometry, material);
@@ -94,26 +93,10 @@
     jarvisGroup = new THREE.Group();
     scene.add(jarvisGroup);
 
-    // === AMBIENT GLOW SPHERE (halo de luz detrás de las partículas) ===
-    const glowGeo = new THREE.SphereGeometry(130, 32, 32);
-    const glowMat = new THREE.MeshBasicMaterial({
-      color: 0xff8800,
-      transparent: true,
-      opacity: 0.06,
-      side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false
-    });
-    const glowSphere = new THREE.Mesh(glowGeo, glowMat);
-    jarvisGroup.add(glowSphere);
-    jarvisGroup.userData.glowSphere = glowSphere;
-    jarvisGroup.userData.glowMat = glowMat;
-
     // === SPHERE LAYERS ===
-    // count ajustado para mejor visibilidad individual de partículas
-    const innerSphere = createParticleSphere(2000, 50, 1.6, 6);   // было 3500
-    const midSphere = createParticleSphere(3000, 85, 1.4, 10);    // было 5000
-    const outerSphere = createParticleSphere(4000, 115, 1.2, 12);  // было 6500
+    const innerSphere = createParticleSphere(3500, 50, 1.4, 8);
+    const midSphere = createParticleSphere(5000, 85, 1.2, 12);
+    const outerSphere = createParticleSphere(6500, 115, 1.0, 15);
 
     jarvisGroup.add(innerSphere);
     jarvisGroup.add(midSphere);
@@ -266,13 +249,6 @@
     const linesMaterial = jarvisGroup.userData.linesMaterial;
     const core = jarvisGroup.userData.core;
     const coreMaterial = jarvisGroup.userData.coreMaterial;
-    const glowMat = jarvisGroup.userData.glowMat;
-
-    // Animar el glow sphere con pulso suave
-    if (glowMat) {
-      glowMat.opacity = 0.05 + Math.sin(time * 2) * 0.03;
-      glowMat.color.copy(currentColor).multiplyScalar(0.5);
-    }
 
     // Aplicar colores.
     innerSphere.material.color.copy(currentColor);
