@@ -1392,8 +1392,8 @@
     const tieneAcceso = (typeof rolPuedeModulo !== "function") || rolPuedeModulo("pos");
     loadState().then(() => {
       aplicarPosicion();
-      // Si está en modo manual, no mostramos el orbe.
-      if (J.cfg && J.cfg.modoManual) { o.classList.add("hidden"); o.style.display = "none"; return; }
+      // El orbe aparece SIEMPRE al iniciar la app. El "modo manual" solo lo
+      // oculta durante la sesión actual (no por un valor viejo persistido).
       o.classList.remove("hidden");
       o.style.display = "block";
       if (window.jarvisOrb && window.jarvisOrb.setVisible) window.jarvisOrb.setVisible(true);
