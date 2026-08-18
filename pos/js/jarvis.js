@@ -304,6 +304,15 @@
     addMsg(J.cfg.elevenlabs.apiKey && J.cfg.elevenlabs.voiceId
       ? "Voz JARVIS guardada. Hablaré con la voz clonada de ElevenLabs."
       : "Voz nativa activada (sin ElevenLabs).", "sys");
+    if (J.cfg && J.cfg.voz && J.cfg.elevenlabs.apiKey && !J.cfg.elevenlabs.voiceId) {
+      hablar("Guardé la clave de ElevenLabs, pero me falta el identificador de voz. Pega el ID de la voz clonada y pulsa guardar otra vez.");
+    } else if (J.cfg && J.cfg.voz && !J.cfg.elevenlabs.apiKey && J.cfg.elevenlabs.voiceId) {
+      hablar("Tienes el identificador de voz, pero me falta la clave de acceso de ElevenLabs. Pega la clave y pulsa guardar.");
+    } else if (J.cfg && J.cfg.voz && J.cfg.elevenlabs.apiKey && J.cfg.elevenlabs.voiceId) {
+      hablar("Voz configurada. Hablaré con la voz clonada de Jarvis.");
+    } else if (J.cfg && J.cfg.voz) {
+      hablar("Guardé los ajustes de voz. Para usar la voz clonada de Jarvis necesito la clave de ElevenLabs y el identificador de voz.");
+    }
   }
 
   async function probarVoz() {
@@ -359,8 +368,8 @@
     const inp = $("jarvis-key-" + prov);
     if (!inp) return;
     const key = inp.value.trim();
-    if (!key) { addMsg("Ingrese una clave de acceso para " + prov + ".", "err"); return; }
-    if (/^[•]+$/.test(key)) { addMsg("Ingrese la nueva clave de acceso de " + prov + " (no deje puntos).", "err"); return; }
+    if (!key) { addMsg("Ingrese una clave de acceso para " + prov + ".", "err"); hablar("El campo de la clave de acceso está vacío. Pega tu clave de " + prov + " y pulsa guardar."); return; }
+    if (/^[•]+$/.test(key)) { addMsg("Ingrese la nueva clave de acceso de " + prov + " (no deje puntos).", "err"); hablar("Veo que dejaste puntos en el campo. Pega la clave de " + prov + " completa, sin dejar puntos."); return; }
     J.cfg.proveedores = J.cfg.proveedores || {};
     J.cfg.proveedores[prov] = J.cfg.proveedores[prov] || {};
     J.cfg.proveedores[prov].apiKey = key;
@@ -370,6 +379,11 @@
       inp.value = "";
       addMsg("Clave de acceso de " + prov + " guardada y activada.", "sys");
       renderConfigTabs();
+      const provSinClave = PROVIDERS.filter(p => !J.cfg.proveedores[p.id] || !J.cfg.proveedores[p.id].apiKey);
+      if (J.cfg && J.cfg.voz) {
+        if (provSinClave.length) hablar("Clave de " + prov + " guardada y activada. Te falta configurar: " + provSinClave.map(p => p.label).join(", ") + ". Puedes pegar esas claves también, o dime: oye Jarvis, listo, para continuar.");
+        else hablar("Clave de " + prov + " guardada y activada. Excelente, ya tienes todos los proveedores configurados. Estoy listo para trabajar. Dime qué tarea necesitas.");
+      }
     });
   }
 
@@ -399,9 +413,9 @@
   // ==================================================================
   const PIPELINE = ["EXPLORAR", "COMPRENDER", "MAPEAR", "INDEXAR", "GUARDAR EN SQLITE", "CREAR HERRAMIENTAS", "VALIDAR PERMISOS", "OPERAR"];
 
-  async function iniciarJarvis() {
+  async function iniciarJarvis(silencioso) {
     if (!kvOk()) { addMsg("Jarvis requiere el entorno de escritorio (Electron).", "err"); return; }
-    abrirPanel();
+    if (!silencioso) abrirPanel();
     J.ocupado = true;
     // Limpia pipeline
     const p = $("jarvis-pipeline");
@@ -432,7 +446,10 @@
     J.ocupado = false;
     const n = resumenDatos();
     addMsg("✓ Jarvis inicializado y operativo. " + n, "sys");
-    if (J.cfg && J.cfg.voz) hablar("Jarvis listo. ¿En qué puedo ayudarte?");
+    if (J.cfg && J.cfg.voz) {
+      if (silencioso) hablar("He terminado de explorar el sistema. " + n + ". Ya conozco los módulos: punto de venta, clientes, productos, inventario, reportes y más. Estoy a la orden, dime qué tarea quieres realizar.");
+      else hablar("Jarvis listo. ¿En qué puedo ayudarte?");
+    }
   }
 
   function reportarPaso(i, name, estado) {
@@ -1032,6 +1049,211 @@
     if (b) { b.classList.toggle("active", on); b.textContent = on ? "🎙 ..." : "🔊 Wake"; }
   }
 
+  // ------------------------------------------------------------------
+  // MODO INNATO — Jarvis escucha y habla desde el arranque, SIN mostrar
+  // ningún panel de diálogo. El usuario lo llama ("oye jarvis"), Jarvis
+  // responde amablemente, y puede pedirle por voz su primera tarea de
+  // exploración, mostrar su configuración u operar el sistema.
+  // ------------------------------------------------------------------
+  let INNATO = null;            // recognizer continuo del modo innato
+  let INNATO_CMD = null;        // recognizer del comando puntual tras el saludo
+  let innatoEscuchando = false; // ¿estamos en medio de capturar un comando?
+
+  function modoInnatoSoportado() { return wakeSupported() && kvOk(); }
+
+  // Arranca el modo innato: esfera visible, escucha continua "oye jarvis"
+  // y un saludo de bienvenida hablado (sin abrir el panel).
+  function iniciarModoInnato() {
+    if (!modoInnatoSoportado()) return;
+    const o = elOrb();
+    if (o) { o.classList.remove("hidden"); o.style.display = "block"; }
+    const lanzar = () => {
+      if (J.cfg) { J.cfg.modoManual = false; saveCfg(); }
+      iniciarEscuchaInnato();
+      if (!J.yaSaludo) {
+        J.yaSaludo = true;
+        setTimeout(() => hablar("Hola, soy Jarvis. Ya estoy en modo de escucha. Dime " +
+          "\"oye Jarvis\" y dame tu primera orden."), 1200);
+      }
+    };
+    if (!J.cfg) loadState().then(lanzar); else lanzar();
+  }
+
+  // Escucha continua que detecta "oye jarvis" (o un simple saludo) y, al
+  // activarlo, escucha un único comando por voz. Nunca llega a abrir el panel.
+  function iniciarEscuchaInnato() {
+    if (!modoInnatoSoportado() || innatoEscuchando) return;
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const rec = new SR();
+    INNATO = rec;
+    rec.lang = "es-ES";
+    rec.interimResults = true;
+    rec.continuous = true;
+    rec.onstart = () => { /* escucha continua silenciosa */ };
+    rec.onresult = (ev) => {
+      if (innatoEscuchando) return;
+      let t = "";
+      for (let i = 0; i < ev.results.length; i++) t += ev.results[i][0].transcript;
+      t = t.toLowerCase();
+      // Detección de "oye jarvis" / "jarvis" / saludo directo (con o sin acento).
+      if (/(oye|hey|hola|oiga|jarvis)?\s*j[aá]rvis/.test(t) ||
+          /(^|\s)(buenos d[ií]as|buenas tardes|buenas noches|hola|saludos)(\s|$)/.test(t)) {
+        try { rec.stop(); } catch (e) {}
+        responderSaludo();
+      }
+    };
+    rec.onerror = () => { /* silencioso; reintenta */ };
+    rec.onend = () => { INNATO = null; /* si está permitido se rearma tras el comando */ };
+    try { rec.start(); } catch (e) { INNATO = null; }
+  }
+
+  // Responde amable al llamado y captura el comando por voz.
+  function responderSaludo() {
+    hablar(saludoAleatorio());
+    iniciarCapturaComandoInnato();
+  }
+
+  function saludoAleatorio() {
+    const frases = [
+      "Hola, aquí estoy. Dime, ¿en qué te ayudo?",
+      "Buenas, soy Jarvis. Estoy a tu disposición. ¿Qué necesitas?",
+      "Hola. Cuéntame, ¿qué tarea quieres que haga?",
+      "Buen día. Estoy para servirte. ¿Qué seguimos?"
+    ];
+    return frases[Math.floor(Math.random() * frases.length)];
+  }
+
+  // Captura UN comando por voz (single-shot) sin abrir el panel.
+  function iniciarCapturaComandoInnato() {
+    if (!modoInnatoSoportado()) return;
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const rec = new SR();
+    INNATO_CMD = rec;
+    innatoEscuchando = true;
+    rec.lang = "es-ES";
+    rec.interimResults = false;
+    rec.continuous = false;
+    rec.onstart = () => { setOrb("listening"); };
+    rec.onresult = (ev) => {
+      let t = "";
+      for (let i = 0; i < ev.results.length; i++) t += ev.results[i][0].transcript;
+      setOrb("");
+      innatoEscuchando = false;
+      INNATO_CMD = null;
+      procesarComandoInnato(t.trim());
+    };
+    rec.onerror = () => { setOrb(""); innatoEscuchando = false; INNATO_CMD = null; rearmarInnato(); };
+    rec.onend = () => { setOrb(""); innatoEscuchando = false; INNATO_CMD = null; rearmarInnato(); };
+    try { rec.start(); } catch (e) { setOrb(""); innatoEscuchando = false; INNATO_CMD = null; }
+  }
+
+  // Al terminar un comando, se rearma la escucha continua para seguir operando.
+  function rearmarInnato() {
+    if (!J.cfg || !J.cfg.modoManual) setTimeout(iniciarEscuchaInnato, 800);
+  }
+
+  function detenerModoInnato() {
+    if (INNATO) { try { INNATO.stop(); } catch (e) {} INNATO = null; }
+    if (INNATO_CMD) { try { INNATO_CMD.stop(); } catch (e) {} INNATO_CMD = null; }
+    innatoEscuchando = false;
+  }
+
+  // Procesa el comando de voz recibido: prioriza tareas innatas (saludo,
+  // exploración, configuración) y luego acciones locales / IA, respondiendo
+  // SIEMPRE por voz y manteniendo el panel cerrado.
+  async function procesarComandoInnato(texto) {
+    const t = (texto || "").toLowerCase().trim();
+    if (!t) return;
+    setOrb("thinking");
+
+    // ---- LISTO (confirma que terminó de configurar o dar órdenes) ----
+    if (/^(listo|ya listo|termin[ée]|ya termin[ée]|hecho|ya est[aá]|adelante|procede|continuemos|seguimos)$/.test(t) ||
+        /^listo(\s|$)/.test(t)) {
+      const prov = (J.cfg && J.cfg.proveedores) || {};
+      const sinClave = PROVIDERS.filter(p => !prov[p.id] || !prov[p.id].apiKey);
+      setOrb("");
+      if (sinClave.length) {
+        hablar("Perfecto. Recuerda que te falta configurar: " + sinClave.map(p => p.label).join(", ") + ". Si me das permiso de voz, puedes pedirme ahora mismo que muestre la configuración. ¿En qué más te ayudo?");
+      } else {
+        hablar("Entendido. Estoy listo. Dime qué tarea quieres que realice en el sistema.");
+      }
+      rearmarInnato(); return;
+    }
+
+    // ---- SALUDO / CONVERSACIÓN AMABLE ----
+    if (/(buenos d[ií]as|buenas tardes|buenas noches|hola|saludos|qu[eé] tal|qu[eé] hubo|c[oó]mo est[aá]s|h[aá]blame de ti)/.test(t)) {
+      setOrb("");
+      hablar(saludoAleatorio());
+      rearmarInnato(); return;
+    }
+
+    // ---- PRIMERA TAREA: EXPLORACIÓN DEL SISTEMA ----
+    if (/(explora|explo[ra]?|escanea|reconoce|analiza|la primera tarea|primeras tareas|inic[ií]a|descubre el sistema|aprende el sistema|escanea el sistema|reconoce el proyecto)/.test(t)) {
+      setOrb("");
+      hablar("Muy bien. Voy a explorar todo el sistema y preparar mis herramientas. Dame unos segundos.");
+      await iniciarJarvis(true);          // modo silencioso: ejecuta el pipeline y habla el resumen
+      rearmarInnato(); return;
+    }
+
+    // ---- MOSTRAR CONFIGURACIÓN (por voz, la ventana de API keys) ----
+    if (/(muestra tu configuraci[oó]n|muestra la configuraci[oó]n|abre tu configuraci[oó]n|abre la configuraci[oó]n|configuraci[oó]n|configurame|muestrame tu configuraci[oó]n|tus claves|api key|claves de acceso)/.test(t)) {
+      setOrb("");
+      abrirJarvisConfig();
+      setTimeout(() => {
+        hablar(guiaConfigVoz());
+        rearmarInnato();
+      }, 1400);
+      return;
+    }
+
+    // ---- OTRAS ACCIONES LOCALES / IA, respondiendo por voz ----
+    const res = await ejecutarAccion(t);
+    if (res) {
+      const textoSalida = (typeof res === "string") ? res : res.text;
+      const key = normalizarQ(t);
+      J.memoria.push({ role: "user", content: t });
+      J.memoria.push({ role: "assistant", content: textoSalida });
+      saveMem();
+      setOrb("");
+      hablar(textoSalida);
+      rearmarInnato(); return;
+    }
+
+    // Fallback al proveedor de IA (conversación general), por voz.
+    const respuesta = await chat(
+      [ { role: "system", content: constrSystemPrompt() },
+        ...J.memoria.slice(-10),
+        { role: "user", content: t } ], {}
+    );
+    setOrb("");
+    if (respuesta.ok) {
+      J.memoria.push({ role: "user", content: t });
+      J.memoria.push({ role: "assistant", content: respuesta.text });
+      saveMem();
+      cacheSet(t, respuesta.text);
+      hablar(respuesta.text);
+    } else {
+      hablar("No pude conectarme al proveedor. Puedes pedirme que muestre mi configuración para revisar las claves.");
+    }
+    rearmarInnato();
+  }
+
+  // Narrativa de guía para la configuración: qué falta y cómo completarla.
+  function guiaConfigVoz() {
+    const prov = (J.cfg && J.cfg.proveedores) || {};
+    const sinClave = PROVIDERS.filter(p => !prov[p.id] || !prov[p.id].apiKey);
+    if (!sinClave.length) return "Estoy mostrando mi configuración. Todos los proveedores tienen clave. Pega o corrige lo que quieras y, al terminar, dime: oye Jarvis, listo.";
+    const nombres = sinClave.map(p => p.label).join(", ");
+    return "Estoy mostrando mi configuración. Para que yo pueda responder por voz necesito una clave de acceso. Te falta: " + nombres + ". Pega tu clave en el campo del proveedor que prefieras y pulsa el botón guardar. Si dejas un campo vacío, te lo avisaré. Al terminar dime: oye Jarvis, listo.";
+  }
+
+  // Cierra a pedido (por voz o botón): detiene la escucha innata.
+  function detenerInnatoManual() {
+    detenerModoInnato();
+    if (J.cfg) { J.cfg.modoManual = true; saveCfg(); }
+    return { ok: true };
+  }
+
 
   // ------------------------------------------------------------------
   // BENTO UI — despliega modales, tablas y gráficos en el frontend a
@@ -1344,6 +1566,7 @@
   // deja el POS en modo tradicional de teclado/mouse.
   function modoManual() {
     detenerWake();
+    detenerModoInnato();
     if (J.rec) { try { J.rec.stop(); } catch (e) {} J.rec = null; }
     if (WWIntent) { try { WWIntent.stop(); } catch (e) {} WWIntent = null; }
     if (J.cfg) J.cfg.modoManual = true;
@@ -1358,6 +1581,7 @@
     saveCfg();
     const o = elOrb(); if (o) o.classList.remove("hidden");
     abrirPanel();
+    setTimeout(() => iniciarEscuchaInnato(), 700);
     return { ok: true };
   }
 
@@ -1372,6 +1596,9 @@
     document.addEventListener("login", () => {
       window.JarvisStart = true;
       mostrarSegunRol();
+      // Modo innato: Jarvis escucha y habla desde el inicio sin mostrar
+      // ningún menú de diálogo. El usuario solo le habla al orbe.
+      setTimeout(() => iniciarModoInnato(), 600);
     });
     // Atajo Ctrl+K: re-despliega el panel de comandos de Jarvis.
     document.addEventListener("keydown", (ev) => {
@@ -1432,6 +1659,7 @@
     registerProvider, dynamicProviders, alternarWake,
     mostrarVozTab, guardarVoz, probarVoz, modoManual, reactivar,
     moverOrbe, posicionActual,
+    iniciarModoInnato, detenerInnatoManual, procesarComandoInnato,
     config: CFP
   };
 
