@@ -206,14 +206,14 @@
       const act = J.cfg && J.cfg.activo === p.id;
       return `<div class="jarvis-config-body ${act ? "active" : ""}" data-prov="${p.id}">
         <div class="jarvis-provider-card ${act ? "sel" : ""}">
-          <div class="jarvis-provider-head"><b>${p.icon} ${p.label}</b> <span class="jarvis-stat">${pc.apiKey ? "✓ key guardada" : "sin key"}</span></div>
+          <div class="jarvis-provider-head"><b>${p.icon} ${p.label}</b> <span class="jarvis-stat">${pc.apiKey ? "✓ clave guardada" : "sin clave"}</span></div>
           <div class="jarvis-stat" style="margin:4px 0">${p.desc}</div>
-          <label>API Key</label>
+          <label>Clave de acceso (API)</label>
           <input type="password" class="input-medium" id="jarvis-key-${p.id}" placeholder="sk-..." value="" autocomplete="off">
           <label>Modelo (opcional; dejar vacío = usar gratuitos automáticos)</label>
           <select class="input-medium" id="jarvis-model-${p.id}" onchange="JarvisAPI.onModel('${p.id}')"></select>
           <div class="jarvis-action-row">
-            <button class="mod-btn" onclick="JarvisAPI.guardarKey('${p.id}')">💾 Guardar API Key</button>
+            <button class="mod-btn" onclick="JarvisAPI.guardarKey('${p.id}')">💾 Guardar clave de acceso</button>
           </div>
         </div>
       </div>`;
@@ -221,9 +221,9 @@
       const pc = (J.cfg && J.cfg.proveedores && J.cfg.proveedores[p.id]) || {};
       return `<div class="jarvis-config-body" data-prov="${p.id}">
         <div class="jarvis-provider-card">
-          <div class="jarvis-provider-head"><b>${p.icon} ${p.label}</b> <span class="jarvis-stat">${pc.apiKey ? "✓ key guardada" : "sin key"}</span></div>
-          <div class="jarvis-stat" style="margin:4px 0">${p.desc} <br>Endpoint: <code>${p.base}</code></div>
-          <label>API Key</label>
+          <div class="jarvis-provider-head"><b>${p.icon} ${p.label}</b> <span class="jarvis-stat">${pc.apiKey ? "✓ clave guardada" : "sin clave"}</span></div>
+          <div class="jarvis-stat" style="margin:4px 0">${p.desc} <br>Dirección: <code>${p.base}</code></div>
+          <label>Clave de acceso (API)</label>
           <input type="password" class="input-medium" id="jarvis-key-${p.id}" placeholder="sk-..." value="" autocomplete="off">
           <label>Modelo (opcional)</label>
           <select class="input-medium" id="jarvis-model-${p.id}" onchange="JarvisAPI.onModel('${p.id}')">
@@ -231,7 +231,7 @@
             ${(DYN_MODELS[p.id] || []).map(m => `<option value="${m.model}">${m.model}${m.free ? " (gratis)" : ""}</option>`).join("")}
           </select>
           <div class="jarvis-action-row">
-            <button class="mod-btn" onclick="JarvisAPI.guardarKey('${p.id}')">💾 Guardar API Key</button>
+            <button class="mod-btn" onclick="JarvisAPI.guardarKey('${p.id}')">💾 Guardar clave de acceso</button>
           </div>
         </div>
       </div>`;
@@ -242,14 +242,14 @@
       const pc = (J.cfg && J.cfg.proveedores && J.cfg.proveedores[p.id]) || {};
       if (s && pc.model) s.value = pc.model;
     });
-    // Pestaña de modo local / offline (Ollama, LM Studio)
+    // Pestaña de modo local / sin conexión (Ollama, LM Studio)
     const off = (J.cfg && J.cfg.offline) || {};
-    tabs.innerHTML += `<div class="tab" data-prov="offline" onclick="JarvisAPI.jarvisShowOfflineTab()">🖥 Local / offline</div>`;
+    tabs.innerHTML += `<div class="tab" data-prov="offline" onclick="JarvisAPI.jarvisShowOfflineTab()">🖥 Local / sin conexión</div>`;
     bodies.innerHTML += `<div class="jarvis-config-body" data-prov="offline">
       <div class="jarvis-provider-card">
         <div class="jarvis-provider-head"><b>🖥 Modelo local (Ollama / LM Studio)</b> <span class="jarvis-stat">${off.host ? "✓ configurado" : "sin configurar"}</span></div>
         <div class="jarvis-stat" style="margin:4px 0">Se usa automáticamente cuando no hay conexión o fallan los proveedores en línea. Requiere Ollama instalado.</div>
-        <label>Host (dirección del servidor local)</label>
+        <label>Servidor local (host)</label>
         <input class="input-medium" id="jarvis-off-host" value="${off.host || "http://127.0.0.1:11434"}">
         <label>Modelos (separados por comas: phi3, qwen, llama3)</label>
         <input class="input-medium" id="jarvis-off-models" value="${(off.modelos || []).join(", ")}">
@@ -267,10 +267,10 @@
     vc.innerHTML += `<div class="jarvis-config-body" data-prov="voz">
       <div class="jarvis-provider-card">
         <div class="jarvis-provider-head"><b>🗣 Voz JARVIS (ElevenLabs)</b> <span class="jarvis-stat">${el.apiKey && el.voiceId ? "✓ configurado" : "sin configurar — voz nativa"}</span></div>
-        <div class="jarvis-stat" style="margin:4px 0">Pega tu API Key de ElevenLabs y el Voice ID de la voz clonada estilo JARVIS (busca "Jarvis" en la Voice Library). Se guarda localmente en esta PC.</div>
-        <label>ElevenLabs API Key</label>
+        <div class="jarvis-stat" style="margin:4px 0">Pega tu clave de ElevenLabs y el identificador (ID) de la voz clonada estilo JARVIS (busca "Jarvis" en la biblioteca de voces). Se guarda localmente en esta PC.</div>
+        <label>Clave de acceso de ElevenLabs</label>
         <input type="password" class="input-medium" id="jarvis-el-key" value="${el.apiKey || ""}" autocomplete="off">
-        <label>Voice ID (20 caracteres)</label>
+        <label>Identificador de voz (20 caracteres)</label>
         <input class="input-medium" id="jarvis-el-voice" value="${el.voiceId || ""}" placeholder="z9fP4kn41A23m92L...">
         <label>Modelo de voz (opcional)</label>
         <input class="input-medium" id="jarvis-el-model" value="${el.modelId || "eleven_multilingual_v2"}">
@@ -359,8 +359,8 @@
     const inp = $("jarvis-key-" + prov);
     if (!inp) return;
     const key = inp.value.trim();
-    if (!key) { addMsg("Ingrese una API key para " + prov + ".", "err"); return; }
-    if (/^[•]+$/.test(key)) { addMsg("Ingrese la nueva API key de " + prov + " (no deje puntos).", "err"); return; }
+    if (!key) { addMsg("Ingrese una clave de acceso para " + prov + ".", "err"); return; }
+    if (/^[•]+$/.test(key)) { addMsg("Ingrese la nueva clave de acceso de " + prov + " (no deje puntos).", "err"); return; }
     J.cfg.proveedores = J.cfg.proveedores || {};
     J.cfg.proveedores[prov] = J.cfg.proveedores[prov] || {};
     J.cfg.proveedores[prov].apiKey = key;
@@ -368,7 +368,7 @@
     J.cfg.activo = prov;
     saveCfg().then(() => {
       inp.value = "";
-      addMsg("API key de " + prov + " guardada y activada.", "sys");
+      addMsg("Clave de acceso de " + prov + " guardada y activada.", "sys");
       renderConfigTabs();
     });
   }
@@ -945,7 +945,7 @@
         iniciarEscuchaComando();
       }
     };
-    ww.onerror = () => { detenerWake(); if (ev && ev.error === "not-allowed") addMsg("Sin permiso de micrófono para el wake word.", "err"); };
+    ww.onerror = () => { detenerWake(); if (ev && ev.error === "not-allowed") addMsg("Sin permiso de micrófono para la palabra de activación.", "err"); };
     ww.onend = () => { WW.activo = false; actualizarBtnWake(false); WW = null; };
     try { ww.start(); } catch (e) { detenerWake(); }
   }
