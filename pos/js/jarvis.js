@@ -689,6 +689,37 @@
     const rol = (typeof rolActual === "function") ? rolActual() : "Consulta";
     const db = getDBOrNull();
 
+    // ---- BÚSQUEDA EN INTERNET (DuckDuckGo sin API key) ----
+    // "busca características del filtro de aceite FRAM PH9688"
+    // "que repuestos son compatibles con el Honda Civic 2019"
+    // "muéstrame una imagen del freno de disco Brembo"
+    const mBusca = t.match(/(?:busca|búscame|mira|consulta|investiga|averigua|que repuestos?|que partes?|que piezas?)\s+(.+)/);
+    const mCaract = t.match(/(?:caracter[ií]sticas de|especificaciones de|compatibilidad de|compatible con|refacciones? para|repuestos? para|piezas? para|partes? para)\s+(.+)/);
+    const mImg = t.match(/(?:im[áa]gen de|foto de|muestra una imagen|busca una imagen)\s+(.+)/);
+    const buscado = mBusca ? mBusca[1] : (mCaract ? mCaract[1] : (mImg ? mImg[1] : null));
+    if (buscado && (mCaract || mImg || /^(busca|búscame|investiga|averigua|consulta|mira)/.test(t))) {
+      let q = buscado.replace(/\b(por favor|en internet|en la web|online)\b/g, "").trim();
+      if (!q) q = t.replace(/\b(busca|búscame|investiga|averigua|consulta|mira|caracter[ií]sticas de|especificaciones de|compatibilidad de|im[áa]gen de|foto de)\b/g, "").trim();
+      const quiereImagen = !!mImg;
+      const r = await window.desktop.jarvis.webSearch(q, { images: quiereImagen }).catch(() => null);
+      if (!r || !r.ok) return "No pude completar la búsqueda: " + ((r && r.msg) || "sin conexión a internet.");
+      if (quiereImagen && r.images && r.images.length) {
+        return {
+          text: `Estas son algunas imágenes de "${q}":`,
+          bento: { tipo: "imagenes", title: "Imágenes: " + q, urls: r.images.slice(0, 8) }
+        };
+      }
+      if (quiereImagen && (!r.images || !r.images.length)) {
+        return "No encontré imágenes de \"" + q + "\". Intenta con un término más específico.";
+      }
+      if (!r.results || !r.results.length) return "No encontré resultados para \"" + q + "\".";
+      return {
+        text: "Resultados de búsqueda para \"" + q + "\":\n" +
+          r.results.slice(0, 5).map((it, i) => `${i + 1}. ${it.title}\n   ${it.url}\n   ${it.snippet || ""}`).join("\n\n"),
+        bento: { tipo: "busqueda", title: "Búsqueda: " + q, results: r.results.slice(0, 5) }
+      };
+    }
+
     // ---- CONSULTA DE PRECIO Y STOCK de un producto ----
     // "¿cuánto cuesta el Aceite Sintético 20W50 y cuántas unidades quedan?"
     const mPrecio = t.match(/(?:cuánto cuesta|precio de|precio del|a como|cuántas unidades quedan|stock de|existencias de)\s+(.+)/);
@@ -998,6 +1029,10 @@
       inner += renderBentoBars(b);
     } else if (b.tipo === "modal") {
       inner += renderBentoModal(b);
+    } else if (b.tipo === "imagenes") {
+      inner += renderBentoImagenes(b);
+    } else if (b.tipo === "busqueda") {
+      inner += renderBentoBusqueda(b);
     }
     card.innerHTML = inner;
     c.appendChild(card);
@@ -1032,6 +1067,26 @@
       rows = b.items.map(it => "<div class='jb-field'><b>" + it + "</b></div>").join("");
     }
     return "<div class='jarvis-bento-modal'>" + rows + "</div>";
+  }
+
+  function renderBentoImagenes(b) {
+    if (!Array.isArray(b.urls) || !b.urls.length) return "<p>Sin imágenes.</p>";
+    const imgs = b.urls.map(u =>
+      "<a class='jb-img' href='" + u + "' target='_blank' rel='noopener'><img loading='lazy' src='" + u + "' alt='' onerror=\"this.closest('.jb-img').style.display='none'\"></a>"
+    ).join("");
+    return "<div class='jarvis-bento-imgs'>" + imgs + "</div>";
+  }
+
+  function renderBentoBusqueda(b) {
+    if (!Array.isArray(b.results) || !b.results.length) return "<p>Sin resultados.</p>";
+    const items = b.results.map(it =>
+      "<a class='jb-res' href='" + (it.url || "#") + "' target='_blank' rel='noopener'>" +
+      "<div class='jb-res-title'>" + (it.title || "") + "</div>" +
+      (it.snippet ? "<div class='jb-res-snip'>" + it.snippet + "</div>" : "") +
+      (it.url ? "<div class='jb-res-url'>" + it.url + "</div>" : "") +
+      "</a>"
+    ).join("");
+    return "<div class='jarvis-bento-results'>" + items + "</div>";
   }
 
   function constrSystemPrompt() {

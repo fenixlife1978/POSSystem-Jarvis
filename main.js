@@ -331,6 +331,92 @@ function jarvisCheckNetwork() {
   });
 }
 
+// ---------------------------------------------------------------------------
+// JARVIS BÚSQUEDA WEB: consulta sin API key a DuckDuckGo (HTML renderizado).
+// Devuelve { ok, results:[{title, url, snippet}], images:[urls] } para que el
+// POS muestre información de repuestos, compatibilidad o la imagen solicitada.
+// ---------------------------------------------------------------------------
+function jarvisWebSearch(query, opts) {
+  opts = opts || {};
+  return new Promise((resolve) => {
+    const https = require("https");
+    const http = require("http");
+    // Página HTML de resultados de DuckDuckGo con imágenes.
+    const q = encodeURIComponent(String(query || "").trim());
+    const wantImages = !!opts.images;
+    let url = "https://html.duckduckgo.com/html/?q=" + q;
+    if (wantImages) url = "https://duckduckgo.com/?q=" + q + "&iax=images&ia=images";
+    let lib = https;
+    if (url.startsWith("http://")) lib = http;
+    const req = lib.request(url, {
+      method: "GET",
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Gecko/20100101 Firefox/120.0",
+        "Accept-Language": "es-ES,es;q=0.9",
+        "Connection": "close"
+      }
+    }, (res) => {
+      let data = "";
+      res.setEncoding("utf8");
+      res.on("data", c => { if (data.length < 2 * 1024 * 1024) data += c; });
+      res.on("end", () => {
+        resolve(parseDuckDuckGo(data, wantImages));
+      });
+    });
+    req.on("error", e => resolve({ ok: false, msg: String(e && e.message || e), results: [], images: [] }));
+    req.setTimeout(15000, () => { req.destroy(); resolve({ ok: false, msg: "Tiempo de espera agotado en la búsqueda.", results: [], images: [] }); });
+    req.end();
+  });
+}
+
+function parseDuckDuckGo(html, wantImages) {
+  const results = [];
+  const images = [];
+  try {
+    const q = require("child_process");
+    // Liberamos las URL codificadas del HTML (no usamos DOMParser en main).
+    const decode = s => String(s || "").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#39;/g, "'");
+    if (wantImages) {
+      // Imágenes: <img ... data-src="..." ...> dentro del grid de imágenes.
+      const re = /<img[^>]+(?:data-src|src)="([^"]+)"[^>]*>/g;
+      let m;
+      while ((m = re.exec(html)) !== null) {
+        const u = decode(m[1]);
+        if (/^https?:\/\//.test(u) || u.indexOf("//") === 0) {
+          images.push(u.indexOf("//") === 0 ? "https:" + u : u);
+        }
+        if (images.length >= 8) break;
+      }
+      return { ok: true, results: [], images };
+    }
+    // Resultados de texto: bloques .result__a (título+URL) y .result__snippet.
+    const reA = /<a[^>]+class="[^"]*result__a[^"]*"[^>]+href="([^"]+)"[^>]*>(.*?)<\/a>/g;
+    const reS = /<a[^>]+class="[^"]*result__snippet[^"]*"[^>]*>(.*?)<\/a>|<td[^>]+class="[^"]*result__snippet[^"]*"[^>]*>(.*?)<\/td>/g;
+    let a, s1;
+    const items = [];
+    while ((a = reA.exec(html)) !== null) {
+      const href = decode(a[1]);
+      const title = a[2].replace(/<[^>]+>/g, "").trim();
+      let url = href;
+      // Redirección de DuckDuckGo: //duckduckgo.com/l/?uddg=<encoded>&rut=...
+      const uddg = href.match(/uddg=([^&]+)/);
+      if (uddg) { try { url = decodeURIComponent(uddg[1]); } catch (e) {} }
+      items.push({ title, url, snippet: "" });
+    }
+    // Los snippets aparecen en el mismo orden que los títulos en el HTML.
+    const snippets = [];
+    while ((s1 = reS.exec(html)) !== null) {
+      const snip = (s1[1] || s1[2] || "").replace(/<[^>]+>/g, "").trim();
+      if (snip) snippets.push(decode(snip));
+    }
+    items.forEach((it, i) => { if (snippets[i]) it.snippet = snippets[i]; });
+    const out = items.filter(it => it.title || it.snippet);
+    return { ok: true, results: out.slice(0, 6), images: [] };
+  } catch (e) {
+    return { ok: false, msg: String(e && e.message || e), results: [], images: [] };
+  }
+}
+
 // Extrae el texto final de una respuesta según el formato de cada proveedor.
 function jarvisExtractText(json) {
   try {
@@ -589,6 +675,7 @@ ipcMain.handle("jarvis-scan", () => jarvisScanProject());
 ipcMain.handle("jarvis-ai", (_e, cfg, model, messages, extra) => jarvisAIChat(cfg, model, messages, extra));
 ipcMain.handle("jarvis-ai-offline", (_e, config, model, messages) => jarvisOfflineChat(config, model, messages));
 ipcMain.handle("jarvis-net-check", () => jarvisCheckNetwork());
+ipcMain.handle("jarvis-web-search", (_e, query, opts) => jarvisWebSearch(query, opts));
 
 // ---------------------------------------------------------------------------
 // CICLO DE VIDA
