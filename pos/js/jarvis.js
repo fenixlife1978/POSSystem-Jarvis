@@ -689,6 +689,28 @@
     const rol = (typeof rolActual === "function") ? rolActual() : "Consulta";
     const db = getDBOrNull();
 
+    // ---- CATÁLOGO LOCAL (reps/lubricantes) — con imagen + voz, sin internet ----
+    // "qué es el aceite 20W50" / "información del filtro de aceite" / "imagen de bujía"
+    const mCat = t.match(/(?:qu[eé] es|qu[eé] son|informaci[oó]n (?:de|sobre)|explicame|cu[áa]nto cuesta|im[áa]gen de|foto de|muestra|precio de|caracter[ií]sticas de)\s+(.+)/);
+    if (mCat && window.JarvisCatalogo) {
+      let q = mCat[1].replace(/\b(por favor|jarvis|dime|me|una|un)\b/g, "").trim();
+      const m = window.JarvisCatalogo.buscar(q);
+      if (m.length) {
+        const f = m[0];
+        const tex = window.JarvisCatalogo.describir(f);
+        // Obtiene la imagen local (internet no necesaria).
+        let dataUrl = "";
+        if (window.desktop && window.desktop.jarvis && window.desktop.jarvis.catImage) {
+          const r = await window.desktop.jarvis.catImage({ clave: f.img, titulo: f.nombre, subtitulo: (f.marca || f.visc || f.tipo) });
+          if (r && r.ok) dataUrl = r.dataUrl;
+        }
+        const bento = dataUrl
+          ? { tipo: "catalogo", title: f.nombre, img: dataUrl, campos: catCampos(f) }
+          : { tipo: "modal", title: f.nombre, campos: catCampos(f) };
+        return { text: tex, bento };
+      }
+    }
+
     // ---- BÚSQUEDA EN INTERNET (DuckDuckGo sin API key) ----
     // "busca características del filtro de aceite FRAM PH9688"
     // "que repuestos son compatibles con el Honda Civic 2019"
@@ -1033,6 +1055,8 @@
       inner += renderBentoImagenes(b);
     } else if (b.tipo === "busqueda") {
       inner += renderBentoBusqueda(b);
+    } else if (b.tipo === "catalogo") {
+      inner += renderBentoCatalogo(b);
     }
     card.innerHTML = inner;
     c.appendChild(card);
@@ -1069,6 +1093,18 @@
     return "<div class='jarvis-bento-modal'>" + rows + "</div>";
   }
 
+  // Campos de ficha del catálogo local de repuestos/lubricantes.
+  function catCampos(f) {
+    return [
+      { label: "Artículo", valor: f.nombre || "" },
+      { label: "Marca", valor: f.marca || "" },
+      { label: "Viscosidad / Esp.", valor: f.visc || "—" },
+      { label: "Tipo", valor: f.tipo || "" },
+      { label: "Para / Uso", valor: f.para || "" },
+      { label: "Envases", valor: f.envases ? f.envases.join(", ") : "" }
+    ];
+  }
+
   function renderBentoImagenes(b) {
     if (!Array.isArray(b.urls) || !b.urls.length) return "<p>Sin imágenes.</p>";
     const imgs = b.urls.map(u =>
@@ -1087,6 +1123,16 @@
       "</a>"
     ).join("");
     return "<div class='jarvis-bento-results'>" + items + "</div>";
+  }
+
+  // Ficha de catálogo local: imagen (offline) + campos.
+  function renderBentoCatalogo(b) {
+    const img = b.img ? "<div class='jb-cat-img'><img src='" + b.img + "' alt=''></div>" : "";
+    let rows = "";
+    if (Array.isArray(b.campos)) {
+      rows = b.campos.filter(c => c.valor).map(c => "<div class='jb-field'><b>" + c.label + "</b><span>" + c.valor + "</span></div>").join("");
+    }
+    return "<div class='jarvis-bento-cat'>" + img + "<div class='jarvis-bento-modal'>" + rows + "</div></div>";
   }
 
   function constrSystemPrompt() {

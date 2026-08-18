@@ -29,6 +29,7 @@ contextBridge.exposeInMainWorld("desktop", {
     ai: (cfg, model, messages, extra) => ipcRenderer.invoke("jarvis-ai", cfg, model, messages, extra),
     aiOffline: (config, model, messages) => ipcRenderer.invoke("jarvis-ai-offline", config, model, messages),
     checkNetwork: () => ipcRenderer.invoke("jarvis-net-check"),
-    webSearch: (query, opts) => ipcRenderer.invoke("jarvis-web-search", query, opts)
+    webSearch: (query, opts) => ipcRenderer.invoke("jarvis-web-search", query, opts),
+    catImage: (meta) => ipcRenderer.invoke("jarvis-cat-image", meta)
   }
 });

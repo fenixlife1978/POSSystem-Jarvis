@@ -678,6 +678,60 @@ ipcMain.handle("jarvis-net-check", () => jarvisCheckNetwork());
 ipcMain.handle("jarvis-web-search", (_e, query, opts) => jarvisWebSearch(query, opts));
 
 // ---------------------------------------------------------------------------
+// IMÁGENES DE CATÁLOGO (offline): genera una miniatura SVG representativa y la
+// guarda en disco. Jarvis la lee como data-URL así funciona SIN INTERNET.
+// ---------------------------------------------------------------------------
+const JARVIS_CAT_DIR = path.join(app.getPath("userData"), "jarvis-catalogo");
+const CAT_ETIQUETAS = {
+  oil: [{ t: "Aceite", c: "#e07b39" }, { t: "Lubricante", c: "#c96" }],
+  flu: [{ t: "Líquido", c: "#3fa9ff" }, { t: "Auto", c: "#2a6ce0" }],
+  fil: [{ t: "Filtro", c: "#7fb0ff" }, { t: "AC", c: "#4a8fd0" }],
+  ele: [{ t: "Eléctrico", c: "#f5c542" }, { t: "Auto", c: "#d09a1e" }],
+  fre: [{ t: "Frenos", c: "#e0574f" }, { t: "Seguridad", c: "#a83b33" }],
+  sus: [{ t: "Suspensión", c: "#57d9b0" }, { t: "Auto", c: "#2f9a7a" }],
+  cor: [{ t: "Correa", c: "#9a7bdb" }, { t: "Motor", c: "#6f4fc2" }]
+};
+
+function jarvisCatSvg(clave, titulo, subtitulo) {
+  const k = String(clave || "gen").split("_");
+  const pref = k[0];
+  const et = CAT_ETIQUETAS[pref] || [{ t: "Auto", c: "#3fa9ff" }, { t: "Parte", c: "#2a6ce0" }];
+  const col1 = et[0].c, col2 = et[1].c;
+  const safe = String(titulo || "Repuesto").replace(/[<>&"]/g, "").slice(0, 26);
+  const sub = String(subtitulo || "").replace(/[<>&"]/g, "").slice(0, 30);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360" viewBox="0 0 480 360">` +
+    `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
+    `<stop offset="0" stop-color="${col1}"/><stop offset="1" stop-color="${col2}"/></linearGradient></defs>` +
+    `<rect width="480" height="360" fill="url(#g)"/>` +
+    `<circle cx="240" cy="150" r="86" fill="rgba(255,255,255,0.22)" stroke="rgba(255,255,255,0.45)" stroke-width="4"/>` +
+    `<circle cx="240" cy="150" r="30" fill="rgba(255,255,255,0.35)"/>` +
+    `<rect x="120" y="258" width="240" height="70" fill="rgba(8,20,42,0.72)"/>` +
+    `<text x="240" y="290" text-anchor="middle" font-family="Segoe UI,Arial" font-size="26" font-weight="bold" fill="#fff">${safe}</text>` +
+    (sub ? `<text x="240" y="316" text-anchor="middle" font-family="Segoe UI,Arial" font-size="17" fill="#bcd6ff">${sub}</text>` : "") +
+    `</svg>`;
+  return svg;
+}
+
+async function jarvisCatImage(meta) {
+  // meta: { clave, titulo, subtitulo } — devuelve data-URL del SVG generado.
+  const clave = (meta && meta.clave) || "gen";
+  const titulo = (meta && meta.titulo) || "Repuesto";
+  const subtitulo = (meta && meta.subtitulo) || "";
+  const slug = clave.replace(/[^a-zA-Z0-9_\-]/g, "_");
+  const file = path.join(JARVIS_CAT_DIR, slug + ".svg");
+  try {
+    const svg = jarvisCatSvg(clave, titulo, subtitulo);
+    await fs.mkdir(JARVIS_CAT_DIR, { recursive: true });
+    await fs.writeFile(file, svg, "utf8");
+    return { ok: true, dataUrl: "data:image/svg+xml;base64," + Buffer.from(svg).toString("base64") };
+  } catch (e) {
+    return { ok: false, msg: String(e && e.message || e) };
+  }
+}
+
+ipcMain.handle("jarvis-cat-image", (_e, meta) => jarvisCatImage(meta));
+
+// ---------------------------------------------------------------------------
 // CICLO DE VIDA
 // ---------------------------------------------------------------------------
 app.whenReady().then(() => {
