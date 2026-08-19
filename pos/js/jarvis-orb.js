@@ -311,15 +311,23 @@
     if (!host) return;
 
     let rendererOk = true;
-    // Habilitar explícitamente el context attributes para Electron
-    const ctxOpts = { antialias: true, alpha: true, powerPreference: 'high-performance' };
+    // Habilitar explícitamente el context attributes para Electron.
+    // failIfMajorPerformanceCaveat:false permite caer a software (SwiftShader).
+    const ctxOpts = { antialias: true, alpha: true, powerPreference: 'high-performance', failIfMajorPerformanceCaveat: false };
+    let r;
     try {
-      const r = new THREE.WebGLRenderer(ctxOpts);
-      r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      host.appendChild(r.domElement);
-      renderer = r;
+      r = new THREE.WebGLRenderer(ctxOpts);
     } catch (e) {
       console.error("jarvis-orb WebGL:", e);
+      r = null;
+    }
+    // Algunos renderer devuelven un contexto nulo SIN lanzar excepción (p.ej.
+    // WebGL por software que no pudo inicializar). Validarlo explícitamente.
+    let ctxOk = !!r && !!r.domElement && !!r.getContext && !!r.getContext();
+    if (r && !ctxOk) {
+      try { r.dispose(); } catch (e) {}
+    }
+    if (!r || !ctxOk) {
       rendererOk = false;
     }
     if (!rendererOk) {
@@ -327,6 +335,10 @@
       window.jarvisOrb = { setState: () => {}, setVisible: () => {}, resize: () => {} };
       return;
     }
+
+    renderer = r;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    host.appendChild(renderer.domElement);
 
     if (typeof THREE.Scene !== "function") {
       showFallback();

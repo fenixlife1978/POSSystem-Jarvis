@@ -18,6 +18,13 @@ app.commandLine.appendSwitch('enable-webgl');
 app.commandLine.appendSwitch('enable-webgl2');
 app.commandLine.appendSwitch('ignore-gpu-blocklist');
 app.commandLine.appendSwitch('enable-accelerated-2d-canvas');
+// SWIFTSHADER (WebGL por software): en máquinas sin GPU o con drivers rotos
+// Electron no puede crear el contexto WebGL por hardware, por lo que la esfera
+// de partículas Three.js (jarvis-orb) cae al fallback CSS. Forzar SwiftShader
+// garantiza que el contexto WebGL SIEMPRE exista y el orbe se renderice en el
+// .exe igual que en el navegador.
+app.commandLine.appendSwitch('use-angle', 'swiftshader');
+app.commandLine.appendSwitch('enable-unsafe-swiftshader');
 
 // ---------------------------------------------------------------------------
 // ALMACENAMIENTO: archivo SQLite .db real en disco.
