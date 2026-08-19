@@ -9,7 +9,7 @@
     cfg: null,            // configuración persistente
     memoria: [],          // historial de conversación
     index: null,          // índice de conocimiento del proyecto
-    proveedores: [],      // modelos gratuitos probables en orden
+    proveedores: {},      // modelos gratuitos probables en orden
     pipelineStep: -1,
     ocupado: false,
     rec: null,
@@ -159,7 +159,10 @@
         window.desktop.jarvis.config.get(CPK),
         window.desktop.jarvis.config.get(CPC)
       ]);
-      J.cfg = c || { proveedores: [], activo: "openrouter", voz: true, nombre: "Jarvis" };
+      J.cfg = c || { proveedores: {}, activo: "openrouter", voz: true, nombre: "Jarvis" };
+      // Normalizar: versiones antiguas guardaban proveedores como ARRAY [], que al
+      // JSON.stringify descartaba las API keys al persistir. Asegurar que sea objeto.
+      if (Array.isArray(J.cfg.proveedores)) J.cfg.proveedores = {};
       J.memoria = Array.isArray(m) ? m : [];
       J.index = k;
       if (Array.isArray(cache)) CACHE = new Map(cache.map(e => [e.q, e])); else CACHE = CACHE || new Map();
@@ -294,7 +297,7 @@
   }
 
   function guardarVoz() {
-    if (!J.cfg) J.cfg = { proveedores: [], activo: "openrouter", voz: true, nombre: "Jarvis" };
+    if (!J.cfg) J.cfg = { proveedores: {}, activo: "openrouter", voz: true, nombre: "Jarvis" };
     J.cfg.elevenlabs = {
       apiKey: ($("jarvis-el-key") && $("jarvis-el-key").value.trim()) || "",
       voiceId: ($("jarvis-el-voice") && $("jarvis-el-voice").value.trim()) || "",
@@ -339,7 +342,7 @@
   }
 
   function setProveedor(id) {
-    if (!J.cfg) J.cfg = { proveedores: [], activo: "openrouter", voz: true, nombre: "Jarvis" };
+    if (!J.cfg) J.cfg = { proveedores: {}, activo: "openrouter", voz: true, nombre: "Jarvis" };
     J.cfg.activo = id;
     saveCfg();
     renderConfigTabs();
@@ -642,7 +645,7 @@
     DYN_MODELS[id] = models;
     // Se integra con el router y la UI de configuración.
     if (def.activo !== false && !(J.cfg && J.cfg.activo)) {
-      if (!J.cfg) J.cfg = { proveedores: [], activo: id, voz: true, nombre: "Jarvis" };
+      if (!J.cfg) J.cfg = { proveedores: {}, activo: id, voz: true, nombre: "Jarvis" };
       J.cfg.activo = id;
     }
     saveCfg();
@@ -954,30 +957,37 @@
     }
 
     // Si no es acción local ni cacheada, consulta al proveedor IA
-    const h = herramientas();
-    const system = constrSystemPrompt();
-    const userMsg = txt;
-    const respuesta = await chat(
-      [ { role: "system", content: system },
-        ...J.memoria.slice(-14),
-        { role: "user", content: userMsg } ],
-      {}
-    );
-    dropWait(w);
-    setOrb("");
-    if (respuesta.ok) {
-      J.memoria.push({ role: "user", content: txt });
-      J.memoria.push({ role: "assistant", content: respuesta.text });
-      guardarMemCache();
-      // BENTO UI: si la respuesta trae payload estructurado, se renderiza.
-      if (respuesta.bento) renderBento(respuesta.bento);
-      addMsg(respuesta.offline ? "🌐 " : "🤖 ", "sys");
-      addMsg(respuesta.text);
-      cacheSet(txt, respuesta.text);
-      if (J.cfg && J.cfg.voz) hablar(respuesta.text);
-    } else {
-      addMsg("No pude conectarme: " + respuesta.msg, "err");
-      if (J.cfg && J.cfg.voz) hablar("No pude conectarme al proveedor. Revisa la configuración.");
+    // try/catch: si chat() lanza, igualmente se limpia "pensando" (dropWait +
+    // setOrb) vía finally, evitando que Jarvis se quede "pensando" indefinidamente.
+    try {
+      const h = herramientas();
+      const system = constrSystemPrompt();
+      const userMsg = txt;
+      const respuesta = await chat(
+        [ { role: "system", content: system },
+          ...J.memoria.slice(-14),
+          { role: "user", content: userMsg } ],
+        {}
+      );
+      if (respuesta.ok) {
+        J.memoria.push({ role: "user", content: txt });
+        J.memoria.push({ role: "assistant", content: respuesta.text });
+        guardarMemCache();
+        // BENTO UI: si la respuesta trae payload estructurado, se renderiza.
+        if (respuesta.bento) renderBento(respuesta.bento);
+        addMsg(respuesta.offline ? "🌐 " : "🤖 ", "sys");
+        addMsg(respuesta.text);
+        cacheSet(txt, respuesta.text);
+        if (J.cfg && J.cfg.voz) hablar(respuesta.text);
+      } else {
+        addMsg("No pude conectarme: " + respuesta.msg, "err");
+        if (J.cfg && J.cfg.voz) hablar("No pude conectarme al proveedor. Revisa la configuración.");
+      }
+    } catch (err) {
+      addMsg("Error inesperado: " + (err && err.message || err), "err");
+    } finally {
+      dropWait(w);
+      setOrb("");
     }
   }
 
@@ -1640,7 +1650,7 @@
 
   // Guarda/lee la configuración del modo offline (Ollama / LM Studio).
   function setOffline(cfg) {
-    if (!J.cfg) J.cfg = { proveedores: [], activo: "openrouter", voz: true, nombre: "Jarvis" };
+    if (!J.cfg) J.cfg = { proveedores: {}, activo: "openrouter", voz: true, nombre: "Jarvis" };
     J.cfg.offline = cfg || {};
     cargarOffline();
     saveCfg();

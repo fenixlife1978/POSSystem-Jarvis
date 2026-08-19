@@ -306,7 +306,7 @@ function jarvisProviderRequest(cfg, model, messages, extra) {
       });
     });
     req.on("error", e => resolve({ ok: false, msg: String(e && e.message || e) }));
-    req.setTimeout(90000, () => { req.destroy(); resolve({ ok: false, msg: "Tiempo de espera agotado" }); });
+    req.setTimeout(30000, () => { req.destroy(); resolve({ ok: false, msg: "Tiempo de espera agotado" }); });
     req.write(body);
     req.end();
   });
@@ -529,7 +529,7 @@ async function jarvisAIChat(rawCfg, model, messages, extra) {
         res.on("end", () => { try { resolve({ ok: true, status: res.statusCode, json: JSON.parse(data) }); } catch (e) { resolve({ ok: false, status: res.statusCode, raw: data.slice(0, 2000) }); } });
       });
       req.on("error", e => resolve({ ok: false, msg: String(e && e.message || e) }));
-      req.setTimeout(90000, () => { req.destroy(); resolve({ ok: false, msg: "Tiempo de espera agotado" }); });
+      req.setTimeout(30000, () => { req.destroy(); resolve({ ok: false, msg: "Tiempo de espera agotado" }); });
       req.write(body); req.end();
     });
   }
